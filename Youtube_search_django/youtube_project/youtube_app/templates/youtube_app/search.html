@@ -23,7 +23,7 @@
                     <form method="get" class="search-form">
                         <div class="field-group">
                             <label>検索対象</label>
-                            <select name="target">
+                            <select id="target" name="target">
                                 <option value="video" {% if target == 'video' %}selected{% endif %}>動画</option>
                                 <option value="live" {% if target == 'live' %}selected{% endif %}>ライブ配信</option>
                             </select>
@@ -43,8 +43,7 @@
                                 <input name="upper_threshold" type="number" min="0" value="{{ upper_threshold }}" placeholder="上限">
                             </div>
                         </div>
-                        {% if target == 'video' %}
-                        <div class="field-group">
+                        <div class="field-group video-filter">
                             <label for="sort">並び替え順</label>
                             <select id="sort" name="order">
                                 <option value="relevance" {% if order == 'relevance' %}selected{% endif %}>関連性が高い順</option>
@@ -54,7 +53,7 @@
                             </select>
                         </div>
 
-                        <div class="field-group columns-2">
+                        <div class="field-group columns-2 video-filter">
                             <div>
                                 <label for="min_duration">最小時間（分）</label>
                                 <input id="min_duration" name="min_duration" type="number" min="0" value="{{ min_duration }}">
@@ -65,7 +64,7 @@
                             </div>
                         </div>
 
-                        <div class="field-group">
+                        <div class="field-group video-filter">
                             <label for="date_option">アップロード日</label>
                             <select id="date_option" name="date_option">
                                 <option value="none" {% if date_option == 'none' %}selected{% endif %}>指定なし</option>
@@ -74,7 +73,6 @@
                                 <option value="30d" {% if date_option == '30d' %}selected{% endif %}>今月（30日間以内）</option>
                             </select>
                         </div>
-                        {% endif %}
 
                         <div class="actions">
                             <button type="submit" class="primary-button">検索実行</button>
@@ -162,5 +160,25 @@
             <p>本アプリは YouTube Data API を利用しています。</p>
         </footer>
     </div>
+    <script>
+        const targetSelect = document.getElementById('target');
+        const videoFilterFields = document.querySelectorAll('.video-filter');
+
+        function updateVideoFilters() {
+            const isVideo = targetSelect.value === 'video';
+            videoFilterFields.forEach((field) => {
+                field.style.display = isVideo ? 'block' : 'none';
+                const inputs = field.querySelectorAll('input, select');
+                inputs.forEach((input) => {
+                    input.disabled = !isVideo;
+                });
+            });
+        }
+
+        if (targetSelect) {
+            targetSelect.addEventListener('change', updateVideoFilters);
+            updateVideoFilters();
+        }
+    </script>
 </body>
 </html>

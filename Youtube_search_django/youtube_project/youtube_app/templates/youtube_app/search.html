@@ -107,6 +107,7 @@
 
             <section class="panel results-panel">
                 <div class="panel-card">
+                    <div id="embedded-player"></div>
                     <div class="results-header">
                         <div>
                             <h2>検索結果</h2>
@@ -144,7 +145,13 @@
                                             <td>{{ row.subscriber_count|intcomma }}</td>
                                             <td>{{ row.buzz_rate }}{% if target == 'live' %}‰{% else %}%{% endif %}</td>
                                             <td>{{ row.display_time }}</td>
-                                            <td class="actions-cell"><a href="?{{ request.GET.urlencode }}&select={{ row.video_id }}" class="select-button">選択</a></td>
+                                            <td class="actions-cell">
+                                                <a href="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}" 
+                                                   hx-get="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}" 
+                                                   hx-target="#embedded-player" 
+                                                   hx-swap="innerHTML" 
+                                                   class="select-button">選択</a>
+                                            </td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
@@ -160,7 +167,19 @@
             <p>本アプリは YouTube Data API を利用しています。</p>
         </footer>
     </div>
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
     <script>
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            try {
+                if (evt.detail && evt.detail.target && evt.detail.target.id === 'embedded-player') {
+                    const playPanel = document.querySelector('.play-panel');
+                    if (playPanel) playPanel.style.display = 'none';
+                }
+            } catch (e) {
+                // ignore
+            }
+        });
+
         const targetSelect = document.getElementById('target');
         const videoFilterFields = document.querySelectorAll('.video-filter');
 

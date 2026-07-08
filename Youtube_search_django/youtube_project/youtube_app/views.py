@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlencode
 
 import isodate
 from django.conf import settings
@@ -239,8 +240,15 @@ def get_error_message(exception: HttpError) -> str:
     return _('YouTube APIエラーが発生しました (Status: %(status)s)') % {'status': status_code}
 
 
+def build_query_string_without_select(request):
+    params = request.GET.copy()
+    params.pop('select', None)
+    return params.urlencode()
+
+
 def search_view(request):
     context = get_query_parameters(request)
+    context['base_query_string'] = build_query_string_without_select(request)
     context['is_video_mode'] = context['target'] == 'video'
     context['results'] = []
     context['error_message'] = ''
@@ -284,7 +292,7 @@ def search_view(request):
 
             context['selected_video_id'] = context['selected_video_id'] or (context['results'][0]['video_id'] if context['results'] else '')
 
-            if 'query' in request.GET:
+            if 'query' in request.GET and 'select' not in request.GET:
                 SearchHistory.objects.create(
                     target=context['target'],
                     query=context['query'],
@@ -306,3 +314,16 @@ def search_view(request):
     context['recent_history'] = SearchHistory.objects.all()[:5]
 
     return render(request, 'youtube_app/search.html', context)
+
+
+def select_video(request):
+    """Return a small HTML fragment containing the YouTube iframe for the requested video.
+
+    This endpoint is intended to be called via HTMX and will return only the iframe markup
+    so it can be inserted into the results area without a full page reload.
+    """
+    video_id = request.GET.get('video_id', '')
+    if not video_id:
+        return render(request, 'youtube_app/player_fragment.html', {'selected_video_id': ''})
+
+    return render(request, 'youtube_app/player_fragment.html', {'selected_video_id': video_id})

@@ -1,0 +1,166 @@
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube検索アプリ</title>
+    <link rel="stylesheet" href="{% static 'youtube_app/style.css' %}">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="app-header">
+            <div>
+                <h1>YouTube検索アプリ</h1>
+                <p>動画とライブ配信の検索・フィルタリング・再生</p>
+            </div>
+        </header>
+
+        <main class="layout-grid">
+            <section class="panel sidebar-panel">
+                <div class="panel-card">
+                    <h2>検索設定</h2>
+                    <form method="get" class="search-form">
+                        <div class="field-group">
+                            <label>検索対象</label>
+                            <select name="target">
+                                <option value="video" {% if target == 'video' %}selected{% endif %}>動画</option>
+                                <option value="live" {% if target == 'live' %}selected{% endif %}>ライブ配信</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="query">検索クエリ</label>
+                            <input id="query" name="query" type="text" value="{{ query }}" placeholder="例: Python 自動化">
+                        </div>
+                        <div class="field-group">
+                            <label for="max_results">上限検索数</label>
+                            <input id="max_results" name="max_results" type="number" min="1" max="50" value="{{ max_results }}">
+                        </div>
+                        <div class="field-group">
+                            <label>登録者数</label>
+                            <div class="range-inputs">
+                                <input name="lower_threshold" type="number" min="0" value="{{ lower_threshold }}" placeholder="下限">
+                                <input name="upper_threshold" type="number" min="0" value="{{ upper_threshold }}" placeholder="上限">
+                            </div>
+                        </div>
+                        {% if target == 'video' %}
+                        <div class="field-group">
+                            <label for="sort">並び替え順</label>
+                            <select id="sort" name="order">
+                                <option value="relevance" {% if order == 'relevance' %}selected{% endif %}>関連性が高い順</option>
+                                <option value="date" {% if order == 'date' %}selected{% endif %}>新しい順</option>
+                                <option value="rating" {% if order == 'rating' %}selected{% endif %}>評価が高い順</option>
+                                <option value="viewCount" {% if order == 'viewCount' %}selected{% endif %}>表示回数の多い順</option>
+                            </select>
+                        </div>
+
+                        <div class="field-group columns-2">
+                            <div>
+                                <label for="min_duration">最小時間（分）</label>
+                                <input id="min_duration" name="min_duration" type="number" min="0" value="{{ min_duration }}">
+                            </div>
+                            <div>
+                                <label for="max_duration">最大時間（分）</label>
+                                <input id="max_duration" name="max_duration" type="number" min="0" value="{{ max_duration }}">
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="date_option">アップロード日</label>
+                            <select id="date_option" name="date_option">
+                                <option value="none" {% if date_option == 'none' %}selected{% endif %}>指定なし</option>
+                                <option value="24h" {% if date_option == '24h' %}selected{% endif %}>今日（24時間以内）</option>
+                                <option value="7d" {% if date_option == '7d' %}selected{% endif %}>今週（7日間以内）</option>
+                                <option value="30d" {% if date_option == '30d' %}selected{% endif %}>今月（30日間以内）</option>
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        <div class="actions">
+                            <button type="submit" class="primary-button">検索実行</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="panel-card history-panel">
+                    <h2>最近の検索履歴</h2>
+                    {% if recent_history %}
+                        <ul class="history-list">
+                            {% for history in recent_history %}
+                                <li>
+                                    <strong>{{ history.query }}</strong> · {{ history.target|title }} · {{ history.results_count }} 件 · {{ history.created_at|date:'Y/m/d H:i' }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="message info">検索履歴はまだありません。</div>
+                    {% endif %}
+                </div>
+                <div class="panel-card play-panel">
+                    <h2>動画再生</h2>
+                    {% if selected_video_id %}
+                        <div class="video-player">
+                            <iframe width="100%" height="240" src="https://www.youtube.com/embed/{{ selected_video_id }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                    {% else %}
+                        <div class="message info">検索結果から動画を選択してください。</div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <section class="panel results-panel">
+                <div class="panel-card">
+                    <div class="results-header">
+                        <div>
+                            <h2>検索結果</h2>
+                            <p>クエリ: <strong>{% if query %}{{ query }}{% else %}-{% endif %}</strong> / 対象: <strong>{{ target|title }}</strong></p>
+                        </div>
+                        <div class="status-pill">{{ results|length }} 件</div>
+                    </div>
+
+                    {% if error_message %}
+                        <div class="message warning">{{ error_message }}</div>
+                    {% endif %}
+
+                    {% if not results %}
+                        <div class="message info">条件に一致する動画が見つかりませんでした。</div>
+                    {% else %}
+                        <div class="result-table-wrap">
+                            <table class="result-table">
+                                <thead>
+                                    <tr>
+                                        <th>サムネイル</th>
+                                        <th>タイトル</th>
+                                        <th>{% if target == 'live' %}同接数{% else %}視聴回数{% endif %}</th>
+                                        <th>登録者数</th>
+                                        <th>人気度</th>
+                                        <th>{% if target == 'live' %}配信経過時間{% else %}アップロード日{% endif %}</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in results %}
+                                        <tr class="result-row {% if selected_video_id == row.video_id %}selected{% endif %}">
+                                            <td class="thumbnail-cell"><img src="{{ row.thumbnail_url }}" alt="サムネイル"></td>
+                                            <td class="title-cell">{{ row.title }}</td>
+                                            <td>{{ row.view_count|intcomma }}</td>
+                                            <td>{{ row.subscriber_count|intcomma }}</td>
+                                            <td>{{ row.buzz_rate }}{% if target == 'live' %}‰{% else %}%{% endif %}</td>
+                                            <td>{{ row.display_time }}</td>
+                                            <td class="actions-cell"><a href="?{{ request.GET.urlencode }}&select={{ row.video_id }}" class="select-button">選択</a></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+
+            </section>
+        </main>
+
+        <footer class="app-footer">
+            <p>本アプリは YouTube Data API を利用しています。</p>
+        </footer>
+    </div>
+</body>
+</html>

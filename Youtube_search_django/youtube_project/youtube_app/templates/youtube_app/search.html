@@ -146,11 +146,16 @@
                                             <td>{{ row.buzz_rate }}{% if target == 'live' %}‰{% else %}%{% endif %}</td>
                                             <td>{{ row.display_time }}</td>
                                             <td class="actions-cell">
-                                                <a href="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}" 
-                                                   hx-get="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}" 
-                                                   hx-target="#embedded-player" 
-                                                   hx-swap="innerHTML" 
-                                                   class="select-button">選択</a>
+                                                {% if row.embeddable %}
+                                                    <a href="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}" 
+                                                       hx-get="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}" 
+                                                       hx-target="#embedded-player" 
+                                                       hx-swap="innerHTML" 
+                                                       class="select-button">選択</a>
+                                                {% else %}
+                                                    <span class="not-embeddable">埋め込み不可</span>
+                                                    <a href="https://www.youtube.com/watch?v={{ row.video_id }}" target="_blank" rel="noopener" class="open-button">YouTubeで開く</a>
+                                                {% endif %}
                                             </td>
                                         </tr>
                                     {% endfor %}

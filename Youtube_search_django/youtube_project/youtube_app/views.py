@@ -103,10 +103,11 @@ def collect_video_details(youtube, video_ids):
         return []
 
     cache_key = f'yt_video_details::{"|".join(video_ids)}'
+    # Include 'status' part to detect whether a video is embeddable
     return cached_api_call(cache_key, lambda: youtube.videos().list(
         id=','.join(video_ids),
-        part='snippet,statistics,contentDetails,liveStreamingDetails',
-        fields='items(id,snippet(title,publishedAt),statistics(viewCount),contentDetails(duration),liveStreamingDetails(concurrentViewers,actualStartTime))'
+        part='snippet,statistics,contentDetails,liveStreamingDetails,status',
+        fields='items(id,snippet(title,publishedAt),statistics(viewCount),contentDetails(duration),liveStreamingDetails(concurrentViewers,actualStartTime),status(embeddable))'
     ).execute().get('items', []), timeout=300)
 
 
@@ -216,6 +217,7 @@ def build_search_results(youtube, raw_items, threshold, min_dur, max_dur, is_liv
             'subscriber_count': item['subscriber_count'],
             'buzz_rate': buzz_rate,
             'display_time': display_time,
+            'embeddable': detail.get('status', {}).get('embeddable', True),
         })
 
     return results

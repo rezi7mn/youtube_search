@@ -17,7 +17,11 @@
         </header>
 
         <main class="layout-grid">
+            <!-- ================================================================== -->
+            <!-- サイドバー：検索フォーム、履歴、再生パネル -->
+            <!-- ================================================================== -->
             <section class="panel sidebar-panel">
+                <!-- 検索フォーム -->
                 <div class="panel-card">
                     <h2>検索設定</h2>
                     <form method="get" class="search-form">
@@ -79,6 +83,8 @@
                         </div>
                     </form>
                 </div>
+
+                <!-- 検索履歴パネル -->
                 <div class="panel-card history-panel">
                     <h2>最近の検索履歴</h2>
                     {% if recent_history %}
@@ -93,6 +99,8 @@
                         <div class="message info">検索履歴はまだありません。</div>
                     {% endif %}
                 </div>
+
+                <!-- サイドバー動画再生パネル（初期表示用） -->
                 <div class="panel-card play-panel">
                     <h2>動画再生</h2>
                     {% if selected_video_id %}
@@ -105,9 +113,15 @@
                 </div>
             </section>
 
+            <!-- ================================================================== -->
+            <!-- メイン：検索結果表示エリア -->
+            <!-- ================================================================== -->
             <section class="panel results-panel">
                 <div class="panel-card">
+                    <!-- HTMX で埋め込みプレイヤーを挿入するターゲットコンテナ -->
                     <div id="embedded-player"></div>
+                    
+                    <!-- 検索結果情報表示 -->
                     <div class="results-header">
                         <div>
                             <h2>検索結果</h2>
@@ -123,6 +137,7 @@
                     {% if not results %}
                         <div class="message info">条件に一致する動画が見つかりませんでした。</div>
                     {% else %}
+                        <!-- 検索結果テーブル（HTMX で選択するとプレイヤーが上に挿入） -->
                         <div class="result-table-wrap">
                             <table class="result-table">
                                 <thead>
@@ -172,8 +187,15 @@
             <p>本アプリは YouTube Data API を利用しています。</p>
         </footer>
     </div>
+
+    <!-- ================================================================== -->
+    <!-- HTMX ライブラリ と 動的フォーム制御スクリプト -->
+    <!-- ================================================================== -->
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
     <script>
+        // ================================================================
+        // HTMX イベントハンドリング：プレイヤー挿入後の処理
+        // ================================================================
         document.body.addEventListener('htmx:afterSwap', function(evt) {
             try {
                 if (evt.detail && evt.detail.target && evt.detail.target.id === 'embedded-player') {
@@ -185,6 +207,9 @@
             }
         });
 
+        // ================================================================
+        // 動的フォームコントロール：検索対象切替時に動画フィルタを表示/非表示
+        // ================================================================
         const targetSelect = document.getElementById('target');
         const videoFilterFields = document.querySelectorAll('.video-filter');
 

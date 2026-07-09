@@ -14,6 +14,9 @@ from googleapiclient.errors import HttpError
 from .models import SearchHistory
 
 
+# ============================================================================
+# YouTube API クライアント初期化
+# ============================================================================
 def get_api_client():
     api_key = getattr(settings, 'YOUTUBE_API_KEY', None)
     if not api_key:
@@ -24,6 +27,9 @@ def get_api_client():
     return build('youtube', 'v3', developerKey=api_key)
 
 
+# ============================================================================
+# 日付パラメータ処理
+# ============================================================================
 def get_iso_date(days_ago: int) -> str:
     target_date = datetime.utcnow() - timedelta(days=days_ago)
     return target_date.isoformat() + 'Z'
@@ -44,6 +50,9 @@ def get_query_parameters(request: HttpRequest) -> dict:
     }
 
 
+# ============================================================================
+# リクエストパラメータ処理
+# ============================================================================
 def build_published_after(date_option: str):
     if date_option == '24h':
         return get_iso_date(1)
@@ -54,6 +63,9 @@ def build_published_after(date_option: str):
     return None
 
 
+# ============================================================================
+# 検索結果抽出・初期データ処理
+# ============================================================================
 def extract_items_from_search(response):
     items = response.get('items', [])
     results = []
@@ -71,6 +83,9 @@ def extract_items_from_search(response):
     return results
 
 
+# ============================================================================
+# API レスポンス キャッシング
+# ============================================================================
 def cached_api_call(cache_key, loader, timeout=300):
     cached = cache.get(cache_key)
     if cached is not None:
@@ -80,6 +95,9 @@ def cached_api_call(cache_key, loader, timeout=300):
     return result
 
 
+# ============================================================================
+# チャンネル・動画詳細情報取得
+# ============================================================================
 def collect_subscriber_counts(youtube, channel_ids):
     if not channel_ids:
         return {}
@@ -111,6 +129,9 @@ def collect_video_details(youtube, video_ids):
     ).execute().get('items', []), timeout=300)
 
 
+# ============================================================================
+# 動画データ変換・フォーマット処理
+# ============================================================================
 def parse_duration_seconds(raw_duration: str) -> int:
     if not raw_duration:
         return 0
@@ -129,6 +150,9 @@ def format_elapsed_time(start_time_str: str) -> str:
     return f'{hours}時間{minutes}分'
 
 
+# ============================================================================
+# YouTube 検索 API 呼び出し
+# ============================================================================
 def search_videos(youtube, q: str, max_results: int, order: str, published_after: str):
     cache_key = f'yt_search_video::{q}::{max_results}::{order}::{published_after or "none"}'
 
@@ -165,6 +189,9 @@ def search_live_streams(youtube, q: str, max_results: int, order: str):
     return extract_items_from_search(response)
 
 
+# ============================================================================
+# 検索結果の構築・フィルタリング（登録者数、時間フィルタなど）
+# ============================================================================
 def build_search_results(youtube, raw_items, threshold, min_dur, max_dur, is_live: bool):
     channel_ids = [item['channel_id'] for item in raw_items if item.get('channel_id')]
     subscriber_counts = collect_subscriber_counts(youtube, channel_ids)
@@ -242,12 +269,18 @@ def get_error_message(exception: HttpError) -> str:
     return _('YouTube APIエラーが発生しました (Status: %(status)s)') % {'status': status_code}
 
 
+# ============================================================================
+# ヘルパー関数（URL パラメータ処理）
+# ============================================================================
 def build_query_string_without_select(request):
     params = request.GET.copy()
     params.pop('select', None)
     return params.urlencode()
 
 
+# ============================================================================
+# メインビュー：検索フォーム表示・検索実行・結果表示
+# ============================================================================
 def search_view(request):
     context = get_query_parameters(request)
     context['base_query_string'] = build_query_string_without_select(request)
@@ -318,11 +351,14 @@ def search_view(request):
     return render(request, 'youtube_app/search.html', context)
 
 
+# ============================================================================
+# HTMX エンドポイント：動画選択時にプレイヤーHTMLフラグメントを返す
+# ============================================================================
 def select_video(request):
-    """Return a small HTML fragment containing the YouTube iframe for the requested video.
-
-    This endpoint is intended to be called via HTMX and will return only the iframe markup
-    so it can be inserted into the results area without a full page reload.
+    """HTMX からの動画選択リクエストに応じて、YouTube プレイヤーの HTML フラグメントを返す。
+    
+    このエンドポイントは HTMX の hx-get で呼び出され、プレイヤー HTML のみを返す。
+    返されたHTMLはJavaScriptで結果パネルに挿入され、ページ全体をリロードせずにプレイヤーが更新される。
     """
     video_id = request.GET.get('video_id', '')
     if not video_id:

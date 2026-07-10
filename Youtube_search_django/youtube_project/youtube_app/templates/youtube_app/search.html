@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube検索アプリ</title>
     <link rel="stylesheet" href="{% static 'youtube_app/style.css' %}">
+    <style>
+        .sortable { cursor: pointer; position: relative; user-select: none; }
+        .sortable:hover { background-color: rgba(0,0,0,0.05); }
+        .sort-icon::after { content: ' ↕'; opacity: 0.3; font-size: 0.8em; }
+        .sort-asc::after { content: ' ▲'; opacity: 1; }
+        .sort-desc::after { content: ' ▼'; opacity: 1; }
+    </style>
 </head>
 <body>
     <div class="page-shell">
@@ -127,15 +134,15 @@
                     {% else %}
                         <!-- 検索結果テーブル（HTMX で選択するとプレイヤーが上に挿入） -->
                         <div class="result-table-wrap">
-                            <table class="result-table">
+                            <table class="result-table" id="resultsTable">
                                 <thead>
                                     <tr>
                                         <th>サムネイル</th>
                                         <th>タイトル</th>
-                                        <th>{% if target == 'live' %}同接数{% else %}視聴回数{% endif %}</th>
-                                        <th>登録者数</th>
-                                        <th>人気度</th>
-                                        <th>{% if target == 'live' %}配信経過時間{% else %}アップロード日{% endif %}</th>
+                                        <th class="sortable" onclick="sortTable(2)">{% if target == 'live' %}同接数{% else %}視聴回数{% endif %}<span class="sort-icon"></span></th>
+                                        <th class="sortable" onclick="sortTable(3)">登録者数<span class="sort-icon"></span></th>
+                                        <th class="sortable" onclick="sortTable(4)">人気度<span class="sort-icon"></span></th>
+                                        <th class="sortable" onclick="sortTable(5)">{% if target == 'live' %}配信経過時間{% else %}アップロード日{% endif %}<span class="sort-icon"></span></th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -182,7 +189,52 @@
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
     <script>
         // ================================================================
-        // 動的フォームコントロール：検索対象切替時に動画フィルタを表示/非表示
+        // テーブルソート機能
+        // ================================================================
+        let sortDirections = {};
+
+        function sortTable(n) {
+            const table = document.getElementById("resultsTable");
+            const tbody = table.tBodies[0];
+            const rows = Array.from(tbody.rows);
+            const headers = table.querySelectorAll('th.sortable');
+
+            // 方向の切り替え
+            sortDirections[n] = !sortDirections[n];
+            const isAsc = sortDirections[n];
+
+            // アイコンの更新
+            headers.forEach(h => h.querySelector('.sort-icon').className = 'sort-icon');
+            headers[n-2].querySelector('.sort-icon').classList.add(isAsc ? 'sort-asc' : 'sort-desc');
+
+            const sortedRows = rows.sort((a, b) => {
+                const aCol = a.cells[n].innerText.replace(/,/g, '').replace(/%/g, '').replace(/‰/g, '').trim();
+                const bCol = b.cells[n].innerText.replace(/,/g, '').replace(/%/g, '').replace(/‰/g, '').trim();
+
+                const aNum = parseFloat(aCol);
+                const bNum = parseFloat(bCol);
+
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return isAsc ? aNum - bNum : bNum - aNum;
+                }
+                return isAsc ? aCol.localeCompare(bCol) : bCol.localeCompare(aCol);
+            });
+
+            while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+            tbody.append(...sortedRows);
+        }
+
+        // ================================================================
+        // 動的なプレイヤー挿入後のスクロール処理（HTMX）
+        // ================================================================
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            if (evt.detail.target.id === 'embedded-player') {
+                evt.detail.target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+
+        // ================================================================
+        // 動적フォームコントロール：検索対象切替時に動画フィルタを表示/非表示
         // ================================================================
         const targetSelect = document.getElementById('target');
         const videoFilterFields = document.querySelectorAll('.video-filter');

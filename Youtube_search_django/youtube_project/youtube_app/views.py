@@ -11,7 +11,7 @@ from django.utils.translation import gettext as _
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from .models import SearchHistory
+from .models import SearchHistory, WatchHistory
 
 
 # ============================================================================
@@ -325,6 +325,11 @@ def search_view(request):
                     is_live=True,
                 )
 
+            # 検索結果をセッションに保存（target情報を付与）
+            for r in context['results']:
+                r['target'] = context['target']
+            request.session['search_results'] = context['results']
+
             context['selected_video_id'] = context['selected_video_id'] or (context['results'][0]['video_id'] if context['results'] else '')
 
             if 'query' in request.GET and 'select' not in request.GET:
@@ -363,5 +368,24 @@ def select_video(request):
     video_id = request.GET.get('video_id', '')
     if not video_id:
         return render(request, 'youtube_app/player_fragment.html', {'selected_video_id': ''})
+    
+    # セッションから検索結果を取得
+    search_results = request.session.get('search_results', [])
+    # 選択された video_id に一致するデータを特定
+    video_data = next((item for item in search_results if item['video_id'] == video_id), None)
 
+    if video_data:
+        # 既存のデータがあれば更新(watched_atも更新される)、なければ新規作成
+        WatchHistory.objects.update_or_create(
+            video_id=video_id,
+            defaults={
+                'title': video_data.get('title', 'タイトルなし'),
+                'thumbnail_url': video_data.get('thumbnail_url', ''),
+                'channel_title': video_data.get('channel_title', '不明'),
+                'tags': video_data.get('tags', []),
+                'view_count': video_data.get('view_count', 0),
+                'subscriber_count': video_data.get('subscriber_count', 0),
+                'video_type': video_data.get('target', 'video'),
+            }
+        )
     return render(request, 'youtube_app/player_fragment.html', {'selected_video_id': video_id})

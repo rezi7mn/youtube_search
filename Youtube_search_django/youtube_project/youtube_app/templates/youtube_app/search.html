@@ -134,6 +134,7 @@
                     {% else %}
                         <!-- 検索結果テーブル（HTMX で選択するとプレイヤーが上に挿入） -->
                         <div class="result-table-wrap">
+
                             <table class="result-table" id="resultsTable">
                                 <thead>
                                     <tr>
@@ -189,8 +190,11 @@
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
     <script>
         // ================================================================
+
         // テーブルソート機能
         // ================================================================
+
+
         let sortDirections = {};
 
         function sortTable(n) {
@@ -234,7 +238,7 @@
         });
 
         // ================================================================
-        // 動적フォームコントロール：検索対象切替時に動画フィルタを表示/非表示
+        // 動画フォームコントロール：検索対象切替時に動画フィルタを表示/非表示
         // ================================================================
         const targetSelect = document.getElementById('target');
         const videoFilterFields = document.querySelectorAll('.video-filter');
@@ -257,4 +261,5 @@
     </script>
 </body>
 </html>
+
 

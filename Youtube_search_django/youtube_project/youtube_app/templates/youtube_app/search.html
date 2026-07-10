@@ -99,18 +99,6 @@
                         <div class="message info">検索履歴はまだありません。</div>
                     {% endif %}
                 </div>
-
-                <!-- サイドバー動画再生パネル（初期表示用） -->
-                <div class="panel-card play-panel">
-                    <h2>動画再生</h2>
-                    {% if selected_video_id %}
-                        <div class="video-player">
-                            <iframe width="100%" height="240" src="https://www.youtube.com/embed/{{ selected_video_id }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        </div>
-                    {% else %}
-                        <div class="message info">検索結果から動画を選択してください。</div>
-                    {% endif %}
-                </div>
             </section>
 
             <!-- ================================================================== -->
@@ -194,20 +182,6 @@
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
     <script>
         // ================================================================
-        // HTMX イベントハンドリング：プレイヤー挿入後の処理
-        // ================================================================
-        document.body.addEventListener('htmx:afterSwap', function(evt) {
-            try {
-                if (evt.detail && evt.detail.target && evt.detail.target.id === 'embedded-player') {
-                    const playPanel = document.querySelector('.play-panel');
-                    if (playPanel) playPanel.style.display = 'none';
-                }
-            } catch (e) {
-                // ignore
-            }
-        });
-
-        // ================================================================
         // 動的フォームコントロール：検索対象切替時に動画フィルタを表示/非表示
         // ================================================================
         const targetSelect = document.getElementById('target');
@@ -231,3 +205,4 @@
     </script>
 </body>
 </html>
+

@@ -20,6 +20,16 @@ class SearchHistory(models.Model):
     def __str__(self):
         return f'{self.query} ({self.target}) - {self.created_at:%Y-%m-%d %H:%M}'
 
+    def get_order_display_text(self):
+        mapping = {
+            'date': '新しい順',
+            'viewCount': '表示回数の多い順',
+            'rating': '評価が高い順',
+            'relevance': '関連性が高い順',
+        }
+        # マッピングになければ「関連度順」をデフォルトにする
+        return mapping.get(self.order, '関連性が高い順')
+
 
 class WatchHistory(models.Model):
     video_id = models.CharField(max_length=20, unique=True) # unique=True を追加

@@ -121,11 +121,11 @@ def collect_video_details(youtube, video_ids):
         return []
 
     cache_key = f'yt_video_details::{"|".join(video_ids)}'
-    # Include 'status' part to detect whether a video is embeddable
+    # fields に snippet(channelTitle,tags) を追加
     return cached_api_call(cache_key, lambda: youtube.videos().list(
         id=','.join(video_ids),
         part='snippet,statistics,contentDetails,liveStreamingDetails,status',
-        fields='items(id,snippet(title,publishedAt),statistics(viewCount),contentDetails(duration),liveStreamingDetails(concurrentViewers,actualStartTime),status(embeddable))'
+        fields='items(id,snippet(title,publishedAt,channelTitle,tags),statistics(viewCount),contentDetails(duration),liveStreamingDetails(concurrentViewers,actualStartTime),status(embeddable))'
     ).execute().get('items', []), timeout=300)
 
 
@@ -239,6 +239,8 @@ def build_search_results(youtube, raw_items, threshold, min_dur, max_dur, is_liv
         results.append({
             'video_id': item['video_id'],
             'title': snippet.get('title', 'タイトルなし'),
+            'channel_title': snippet.get('channelTitle', '不明'), # チャンネル名を追加
+            'tags': snippet.get('tags', []),                     # タグを追加
             'thumbnail_url': item['thumbnail_url'],
             'view_count': view_count,
             'subscriber_count': item['subscriber_count'],
@@ -392,7 +394,7 @@ def select_video(request):
     video_data = next((item for item in search_results if item['video_id'] == video_id), None)
 
     if video_data:
-        # 既存のデータがあれば更新(watched_atも更新される)、なければ新規作成
+        # WatchHistory に channel_title と tags を確実に保存
         WatchHistory.objects.update_or_create(
             video_id=video_id,
             defaults={
@@ -406,3 +408,4 @@ def select_video(request):
             }
         )
     return render(request, 'youtube_app/player_fragment.html', {'selected_video_id': video_id})
+

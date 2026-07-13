@@ -95,11 +95,15 @@
                 <div class="panel-card history-panel">
                     <h2><a href="{% url 'youtube_app:history' %}" style="color: inherit; text-decoration: underline;">最近の検索履歴</a></h2>
                     {% if recent_history %}
-
                         <ul class="history-list">
                             {% for history in recent_history %}
                                 <li>
-                                    <strong>{{ history.query }}</strong> · {{ history.target|title }} · {{ history.results_count }} 件 · {{ history.created_at|date:'Y/m/d H:i' }}
+                                    <strong>{{ history.query }}</strong> · {{ history.target|title }} · {{ history.results_count }} 件<br>
+                                    <small style="color: #666;">
+                                        登録者: {{ history.lower_threshold|intcomma }}〜{{ history.upper_threshold|intcomma }}
+                                        {% if history.target == 'video' %}| 時間: {{ history.min_duration }}〜{{ history.max_duration }}分{% endif %}<br>
+                                        {{ history.created_at|date:'Y/m/d H:i' }}
+                                    </small>
                                 </li>
                             {% endfor %}
                         </ul>
@@ -109,14 +113,14 @@
                 </div>
             </section>
 
-            <!-- ================================================================== -->
+    <!-- ================================================================== -->
             <!-- メイン：検索結果表示エリア -->
-            <!-- ================================================================== -->
+    <!-- ================================================================== -->
             <section class="panel results-panel">
                 <div class="panel-card">
                     <!-- HTMX で埋め込みプレイヤーを挿入するターゲットコンテナ -->
                     <div id="embedded-player"></div>
-                    
+
                     <!-- 検索結果情報表示 -->
                     <div class="results-header">
                         <div>
@@ -159,10 +163,10 @@
                                             <td>{{ row.display_time }}</td>
                                             <td class="actions-cell">
                                                 {% if row.embeddable %}
-                                                    <a href="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}" 
-                                                       hx-get="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}" 
-                                                       hx-target="#embedded-player" 
-                                                       hx-swap="innerHTML" 
+                                                    <a href="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}"
+                                                       hx-get="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}"
+                                                       hx-target="#embedded-player"
+                                                       hx-swap="innerHTML"
                                                        class="select-button">選択</a>
                                                 {% else %}
                                                     <span class="not-embeddable">埋め込み不可</span>
@@ -184,7 +188,6 @@
             <p>本アプリは YouTube Data API を利用しています。</p>
         </footer>
     </div>
-
     <!-- ================================================================== -->
     <!-- HTMX ライブラリ と 動的フォーム制御スクリプト -->
     <!-- ================================================================== -->
@@ -221,9 +224,9 @@
 
                 if (!isNaN(aNum) && !isNaN(bNum)) {
                     return isAsc ? aNum - bNum : bNum - aNum;
-                }
+            }
                 return isAsc ? aCol.localeCompare(bCol) : bCol.localeCompare(aCol);
-            });
+        });
 
             while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
             tbody.append(...sortedRows);
@@ -262,5 +265,4 @@
     </script>
 </body>
 </html>
-
 

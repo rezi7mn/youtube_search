@@ -27,12 +27,14 @@
                                 {% for history in search_history %}
                                     <li style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
                                         <div style="font-weight: bold; font-size: 1.1em;">{{ history.query }}</div>
-                                        <div style="color: #666; font-size: 0.9em;">
+                                        <div style="color: #666; font-size: 0.9em; line-height: 1.6;">
                                             対象: {{ history.target|title }} | 
                                             結果: {{ history.results_count }} 件 | 
-                                            {{ history.created_at|date:'Y/m/d H:i' }}
+                                            {{ history.created_at|date:'Y/m/d H:i' }}<br>
+                                            登録者: {{ history.lower_threshold|intcomma }} 〜 {{ history.upper_threshold|intcomma }}
+                                            {% if history.target == 'video' %}| 時間: {{ history.min_duration }}分 〜 {{ history.max_duration }}分{% endif %}
                                         </div>
-                                        <div style="margin-top: 5px;">
+                                        <div style="margin-top: 8px;">
                                             <a href="{% url 'youtube_app:search' %}?query={{ history.query }}&target={{ history.target }}&max_results={{ history.max_results }}&order={{ history.order }}&lower_threshold={{ history.lower_threshold }}&upper_threshold={{ history.upper_threshold }}&min_duration={{ history.min_duration }}&max_duration={{ history.max_duration }}&date_option={{ history.date_option }}" class="select-button" style="font-size: 0.8em; padding: 4px 8px;">再検索</a>
                                         </div>
                                     </li>
@@ -58,8 +60,8 @@
                                         <div style="flex-grow: 1;">
                                             <h3 style="margin: 0 0 5px 0; font-size: 1em; line-height: 1.4;">{{ item.title }}</h3>
                                             <div style="color: #666; font-size: 0.85em; margin-bottom: 5px;">
-                                                {{ item.channel_title }} | 
-                                                {% if item.video_type == 'live' %}同接{% else %}視聴{% endif %}: {{ item.view_count|intcomma }} | 
+                                                {{ item.channel_title }} |
+                                                {% if item.video_type == 'live' %}同接{% else %}視聴{% endif %}: {{ item.view_count|intcomma }} |
                                                 {{ item.watched_at|date:'Y/m/d H:i' }}
                                             </div>
                                             {% if item.tags %}
@@ -88,3 +90,4 @@
     </div>
 </body>
 </html>
+

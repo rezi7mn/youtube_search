@@ -91,10 +91,11 @@
                     </form>
                 </div>
 
-                <!-- 検索履歴パネル -->
+                                <!-- 検索履歴パネル -->
                 <div class="panel-card history-panel">
-                    <h2>最近の検索履歴</h2>
+                    <h2><a href="{% url 'youtube_app:history' %}" style="color: inherit; text-decoration: underline;">最近の検索履歴</a></h2>
                     {% if recent_history %}
+
                         <ul class="history-list">
                             {% for history in recent_history %}
                                 <li>

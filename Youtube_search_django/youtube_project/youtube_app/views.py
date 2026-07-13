@@ -86,7 +86,7 @@ def extract_items_from_search(response):
 # ============================================================================
 # API レスポンス キャッシング
 # ============================================================================
-def cached_api_call(cache_key, loader, timeout=300):
+def cached_api_call(cache_key, loader, timeout=1200):
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -356,9 +356,26 @@ def search_view(request):
     return render(request, 'youtube_app/search.html', context)
 
 
+
+# ============================================================================
+# 履歴表示ビュー
+# ============================================================================
+def history_view(request):
+    """検索履歴と動画視聴履歴を一覧表示する。"""
+    search_history = SearchHistory.objects.all()[:50]
+    watch_history = WatchHistory.objects.all()[:50]
+    
+    context = {
+        'search_history': search_history,
+        'watch_history': watch_history,
+    }
+    return render(request, 'youtube_app/history.html', context)
+
+
 # ============================================================================
 # HTMX エンドポイント：動画選択時にプレイヤーHTMLフラグメントを返す
 # ============================================================================
+
 def select_video(request):
     """HTMX からの動画選択リクエストに応じて、YouTube プレイヤーの HTML フラグメントを返す。
     

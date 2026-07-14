@@ -6,7 +6,9 @@ import isodate
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpRequest
+from django.core.paginator import Paginator
 from django.shortcuts import render
+
 from django.utils.translation import gettext as _
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -335,6 +337,10 @@ def search_view(request):
             context['selected_video_id'] = context['selected_video_id'] or (context['results'][0]['video_id'] if context['results'] else '')
 
             if 'query' in request.GET and 'select' not in request.GET:
+                # 最新100件を残して古い検索履歴を削除
+                history_ids = SearchHistory.objects.values_list('id', flat=True)[:99]
+                SearchHistory.objects.exclude(id__in=list(history_ids)).delete()
+
                 SearchHistory.objects.create(
                     target=context['target'],
                     query=context['query'],
@@ -354,9 +360,7 @@ def search_view(request):
             context['error_message'] = str(e)
 
     context['recent_history'] = SearchHistory.objects.all()[:5]
-
     return render(request, 'youtube_app/search.html', context)
-
 
 
 # ============================================================================
@@ -364,36 +368,41 @@ def search_view(request):
 # ============================================================================
 def history_view(request):
     """検索履歴と動画視聴履歴を一覧表示する。"""
-    search_history = SearchHistory.objects.all()[:50]
-    watch_history = WatchHistory.objects.all()[:50]
-    
+    search_list = SearchHistory.objects.all()
+    watch_list = WatchHistory.objects.all()
+
+    # ページネーション設定
+    search_page_num = request.GET.get('s_page', 1)
+    watch_page_num = request.GET.get('w_page', 1)
+
+    search_paginator = Paginator(search_list, 20)  # 検索履歴は1ページ20件
+    watch_paginator = Paginator(watch_list, 14)    # 動画履歴は1ページ14件
+
     context = {
-        'search_history': search_history,
-        'watch_history': watch_history,
+        'search_history': search_paginator.get_page(search_page_num),
+        'watch_history': watch_paginator.get_page(watch_page_num),
     }
     return render(request, 'youtube_app/history.html', context)
+
 
 
 # ============================================================================
 # HTMX エンドポイント：動画選択時にプレイヤーHTMLフラグメントを返す
 # ============================================================================
-
 def select_video(request):
-    """HTMX からの動画選択リクエストに応じて、YouTube プレイヤーの HTML フラグメントを返す。
-    
-    このエンドポイントは HTMX の hx-get で呼び出され、プレイヤー HTML のみを返す。
-    返されたHTMLはJavaScriptで結果パネルに挿入され、ページ全体をリロードせずにプレイヤーが更新される。
-    """
+    """HTMX からの動画選択リクエストに応じて、YouTube プレイヤーの HTML フラグメントを返す。"""
     video_id = request.GET.get('video_id', '')
     if not video_id:
         return render(request, 'youtube_app/player_fragment.html', {'selected_video_id': ''})
-    
-    # セッションから検索結果を取得
+
     search_results = request.session.get('search_results', [])
-    # 選択された video_id に一致するデータを特定
     video_data = next((item for item in search_results if item['video_id'] == video_id), None)
 
     if video_data:
+        # 最新100件を残して古い視聴履歴を削除
+        history_ids = WatchHistory.objects.values_list('id', flat=True)[:99]
+        WatchHistory.objects.exclude(id__in=list(history_ids)).delete()
+
         # WatchHistory に channel_title と tags を確実に保存
         WatchHistory.objects.update_or_create(
             video_id=video_id,

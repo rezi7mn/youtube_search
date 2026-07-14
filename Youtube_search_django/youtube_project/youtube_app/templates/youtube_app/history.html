@@ -40,6 +40,25 @@
                                     </li>
                                 {% endfor %}
                             </ul>
+
+                            <!-- 検索履歴 ページネーション -->
+                            <div class="pagination" style="margin-top: 20px; text-align: center;">
+                                <span class="step-links">
+                                    {% if search_history.has_previous %}
+                                        <a href="?s_page=1&w_page={{ watch_history.number }}">&laquo; 最初</a>
+                                        <a href="?s_page={{ search_history.previous_page_number }}&w_page={{ watch_history.number }}">前へ</a>
+                                    {% endif %}
+
+                                    <span class="current">
+                                        {{ search_history.number }} / {{ search_history.paginator.num_pages }}
+                                    </span>
+
+                                    {% if search_history.has_next %}
+                                        <a href="?s_page={{ search_history.next_page_number }}&w_page={{ watch_history.number }}">次へ</a>
+                                        <a href="?s_page={{ search_history.paginator.num_pages }}&w_page={{ watch_history.number }}">最後 &raquo;</a>
+                                    {% endif %}
+                                </span>
+                            </div>
                         {% else %}
                             <div class="message info">検索履歴はありません。</div>
                         {% endif %}
@@ -84,6 +103,25 @@
                                         </div>
                                     </div>
                                 {% endfor %}
+                            </div>
+
+                            <!-- 視聴履歴 ページネーション -->
+                            <div class="pagination" style="margin-top: 20px; text-align: center;">
+                                <span class="step-links">
+                                    {% if watch_history.has_previous %}
+                                        <a href="?w_page=1&s_page={{ search_history.number }}">&laquo; 最初</a>
+                                        <a href="?w_page={{ watch_history.previous_page_number }}&s_page={{ search_history.number }}">前へ</a>
+                                    {% endif %}
+
+                                    <span class="current">
+                                        {{ watch_history.number }} / {{ watch_history.paginator.num_pages }}
+                                    </span>
+
+                                    {% if watch_history.has_next %}
+                                        <a href="?w_page={{ watch_history.next_page_number }}&s_page={{ search_history.number }}">次へ</a>
+                                        <a href="?w_page={{ watch_history.paginator.num_pages }}&s_page={{ search_history.number }}">最後 &raquo;</a>
+                                    {% endif %}
+                                </span>
                             </div>
                         {% else %}
                             <div class="message info">視聴履歴はありません。</div>

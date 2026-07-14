@@ -1,0 +1,41 @@
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>あなたへのおすすめ - YouTube検索アプリ</title>
+    <link rel="stylesheet" href="{% static 'youtube_app/style.css' %}">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="app-header">
+            <h1>✨ あなたへのおすすめ</h1>
+            <p>視聴履歴と検索履歴をAI解析（TF-IDF）して選定しました</p>
+            <a href="{% url 'youtube_app:search' %}" class="select-button">検索に戻る</a>
+            <a href="{% url 'youtube_app:history' %}" class="select-button">履歴を見る</a>
+        </header>
+
+        <main class="layout-grid" style="display: block; max-width: 1000px; margin: 20px auto;">
+            {% if message %}
+                <div class="message info">{{ message }}</div>
+            {% endif %}
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                {% for video in results %}
+                    <div class="panel-card" style="padding: 10px;">
+                        <img src="{{ video.thumbnail_url }}" style="width: 100%; border-radius: 8px;">
+                        <h3 style="font-size: 1em; margin: 10px 0;">{{ video.title }}</h3>
+                        <p style="color: #666; font-size: 0.8em;">{{ video.channel_title }}</p>
+                        <div style="margin-bottom: 10px;">
+                            {% for tag in video.tags|slice:":3" %}
+                                <span style="font-size: 0.7em; background: #eee; padding: 2px 5px; border-radius: 3px;">#{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        <a href="{% url 'youtube_app:search' %}?query={{ video.title|urlencode }}&select={{ video.video_id }}" class="primary-button" style="text-align: center; display: block;">再生・詳細</a>
+                    </div>
+                {% endfor %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>

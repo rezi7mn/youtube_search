@@ -1,4 +1,7 @@
 import os
+import random
+import re
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 
@@ -12,8 +15,11 @@ from django.shortcuts import render
 from django.utils.translation import gettext as _
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from sklearn.feature_extraction.text import TfidfVectorizer
+from janome.tokenizer import Tokenizer
 
 from .models import SearchHistory, WatchHistory
+
 
 
 # ============================================================================
@@ -274,14 +280,124 @@ def get_error_message(exception: HttpError) -> str:
 
 
 # ============================================================================
+# おすすめ動画生成アルゴリズム
+# ============================================================================
+def get_recommendation_queries(watch_history, search_history):
+    """履歴を解析して検索クエリのリストを生成する"""
+
+        # 1. 視聴履歴のタイトルから重要単語を抽出 (TF-IDF)
+    titles = [h.title for h in watch_history[:10]]
+    tfidf_words = []
+    if titles:
+        t = Tokenizer()
+        def japanese_tokenizer(text):
+            # Janomeを使用して名詞のみを抽出
+            return [token.surface for token in t.tokenize(text) if token.part_of_speech.startswith('名詞')]
+
+        # 文字列が空でないものだけをフィルタリング
+        valid_titles = [t for t in titles if japanese_tokenizer(t)]
+
+        if valid_titles:
+            vectorizer = TfidfVectorizer(tokenizer=japanese_tokenizer, token_pattern=None, max_features=10)
+            try:
+                # 行列としてフィットさせる
+                tfidf_matrix = vectorizer.fit_transform(valid_titles)
+                # get_feature_names_out を使用して単語リストを取得
+                tfidf_words = vectorizer.get_feature_names_out().tolist()
+            except ValueError:
+                tfidf_words = []
+
+    # 2. 視聴履歴から頻出タグを抽出
+    all_tags = []
+    for h in watch_history[:10]:
+        if h.tags:
+            all_tags.extend(h.tags)
+    common_tags = [tag for tag, count in Counter(all_tags).most_common(10)]
+
+    # 3. 直近の検索クエリを抽出
+    search_queries = [h.query for h in search_history[:5]]
+
+    # クエリ生成
+    generated_queries = []
+
+    # 4. (TF-IDF単語) + (共通タグ)
+    if tfidf_words and common_tags:
+        for _ in range(2):
+            q = f"{random.choice(tfidf_words)} {random.choice(common_tags)}"
+            generated_queries.append(q)
+
+    # 5. (共通タグ) + (過去検索クエリ)
+    if common_tags and search_queries:
+        for _ in range(2):
+            q = f"{random.choice(common_tags)} {random.choice(search_queries)}"
+            generated_queries.append(q)
+
+    return list(set(generated_queries)) # 重複除去
+
+def recommendations_view(request):
+    """おすすめ動画を表示する専用ビュー"""
+    cache_key = 'user_recommendations_data'
+    results = cache.get(cache_key)
+
+    if results is None:
+        watch_history = WatchHistory.objects.all()
+        search_history = SearchHistory.objects.all()
+
+        if not watch_history and not search_history:
+            return render(request, 'youtube_app/recommendations.html', {'results': [], 'message': '履歴が足りないためおすすめを表示できません。'})
+
+        queries = get_recommendation_queries(watch_history, search_history)
+        youtube = get_api_client()
+
+
+        raw_results = []
+        watched_ids = set(WatchHistory.objects.values_list('video_id', flat=True))
+
+        for q in queries:
+            try:
+                # YouTube API 検索実行
+                search_response = youtube.search().list(
+                    q=q,
+                    part='id,snippet',
+                    maxResults=5,
+                    type='video'
+                ).execute()
+
+                for item in search_response.get('items', []):
+                    v_id = item['id'].get('videoId')
+                    if v_id and v_id not in watched_ids:
+                        raw_results.append({
+                            'video_id': v_id,
+                            'channel_id': item['snippet']['channelId'],
+                            'thumbnail_url': item['snippet']['thumbnails']['medium']['url'],
+                        })
+            except Exception:
+                continue # APIエラー時はスキップ
+
+        # 重複除去と詳細情報の取得
+        unique_raw = {res['video_id']: res for res in raw_results}.values()
+        if unique_raw:
+            results = build_search_results(
+                youtube,
+                list(unique_raw),
+                threshold=(0, 100000000),
+                min_dur=0, max_dur=1000,
+                is_live=False
+            )
+        else:
+            results = []
+            
+        # 1時間キャッシュ
+        cache.set(cache_key, results, 3600)
+
+    return render(request, 'youtube_app/recommendations.html', {'results': results})
+# ============================================================================
 # ヘルパー関数（URL パラメータ処理）
 # ============================================================================
 def build_query_string_without_select(request):
     params = request.GET.copy()
     params.pop('select', None)
     return params.urlencode()
-
-
 # ============================================================================
 # メインビュー：検索フォーム表示・検索実行・結果表示
 # ============================================================================
@@ -304,7 +420,7 @@ def search_view(request):
                     max_results=context['max_results'],
                     order=context['order'],
                     published_after=published_after,
-                )
+        )
                 context['results'] = build_search_results(
                     youtube,
                     raw_results,

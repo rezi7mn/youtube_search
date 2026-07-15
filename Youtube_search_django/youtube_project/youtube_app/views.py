@@ -258,8 +258,6 @@ def build_search_results(youtube, raw_items, threshold, min_dur, max_dur, is_liv
             'embeddable': detail.get('status', {}).get('embeddable', True),
         })
 
-
-
     return results
 
 

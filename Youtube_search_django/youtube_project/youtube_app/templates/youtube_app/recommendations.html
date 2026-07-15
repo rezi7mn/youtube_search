@@ -58,7 +58,7 @@
         <header class="app-header">
             <div>
                 <h1>✨ あなたへのおすすめ</h1>
-                <p>視聴履歴と検索履歴をAI解析（TF-IDF）して選定しました</p>
+                <p>視聴履歴と検索履歴を選定しました</p>
             </div>
             <div style="margin-top: 10px; display: flex; gap: 10px;">
                 <a href="{% url 'youtube_app:search' %}" class="select-button">検索に戻る</a>
@@ -72,6 +72,9 @@
                 {% if message %}
                     <div class="message info" style="background: #333; color: #eee; border: none;">{{ message }}</div>
                 {% endif %}
+
+                <!-- 動画再生用のコンテナを追加 -->
+                <div id="recommendation-player" style="margin-bottom: 20px;"></div>
 
                 <div class="horizontal-scroll">
                     {% for video in results %}
@@ -87,8 +90,16 @@
                             <h3>{{ video.title }}</h3>
 
                             <p style="color: #aaa; font-size: 0.8em; margin-bottom: 10px;">{{ video.channel_title }}</p>
-                            <a href="{% url 'youtube_app:search' %}?query={{ video.title|urlencode }}&select={{ video.video_id }}" class="primary-button" style="text-align: center; display: block; font-size: 0.85em; padding: 8px; background-color: #cc0000;">再生</a>
-                        </div>
+                            <!-- HTMX を使用して再生するように変更 -->
+                            <button
+                               hx-get="{% url 'youtube_app:select_video' %}?video_id={{ video.video_id }}"
+                               hx-target="#recommendation-player"
+                               hx-swap="innerHTML"
+                               class="primary-button"
+                               style="text-align: center; display: block; width: 100%; font-size: 0.85em; padding: 8px; background-color: #cc0000; border: none; cursor: pointer;">
+                               再生
+                            </button>
+                </div>
                     {% endfor %}
                 </div>
             </section>
@@ -100,10 +111,20 @@
                     <div style="text-align: center; color: #777;">
                         <p style="font-size: 1.1em; margin-bottom: 10px;">お気に入りはまだありません</p>
                         <p style="font-size: 0.85em;">気になる動画をチェックして、自分だけのリストを作りましょう</p>
-                    </div>
+    </div>
                 </div>
             </section>
         </main>
     </div>
+
+    <!-- HTMX ライブラリ と スクロール制御スクリプトの追加 -->
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <script>
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            if (evt.detail.target.id === 'recommendation-player') {
+                evt.detail.target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    </script>
 </body>
 </html>

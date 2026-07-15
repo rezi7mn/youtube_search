@@ -512,8 +512,14 @@ def select_video(request):
     if not video_id:
         return render(request, 'youtube_app/player_fragment.html', {'selected_video_id': ''})
 
+    # 1. セッション（検索結果）から動画データを取得
     search_results = request.session.get('search_results', [])
     video_data = next((item for item in search_results if item['video_id'] == video_id), None)
+
+    # 2. セッションにない場合、キャッシュ（おすすめ動画）から動画データを取得
+    if not video_data:
+        recommendations = cache.get('user_recommendations_data', [])
+        video_data = next((item for item in recommendations if item['video_id'] == video_id), None)
 
     if video_data:
         # 最新100件を残して古い視聴履歴を削除

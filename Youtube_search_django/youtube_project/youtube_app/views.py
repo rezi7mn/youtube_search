@@ -255,6 +255,7 @@ def build_search_results(youtube, raw_items, threshold, min_dur, max_dur, is_liv
             'buzz_rate': buzz_rate,
             'display_time': display_time,
             'duration_formatted': content_details.get('duration', ''), # 生のISO8601形式を保持
+            'published_at': snippet.get('publishedAt', ''),           # 生の投稿日時を追加
             'embeddable': detail.get('status', {}).get('embeddable', True),
         })
 

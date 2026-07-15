@@ -1,5 +1,6 @@
 import isodate
 from django import template
+from datetime import datetime, timezone
 
 register = template.Library()
 
@@ -18,3 +19,38 @@ def parse_duration(value):
         return f"{minutes}:{seconds:02d}"
     except:
         return value
+
+@register.filter
+def format_views(value):
+    """視聴回数を1万単位に変換 (10000未満はそのまま、以上は1.0万)"""
+    try:
+        val = int(value)
+        if val < 10000:
+            return f"{val}"
+        return f"{val / 10000:.1f}万"
+    except:
+        return value
+
+@register.filter
+def relative_time(value):
+    """ISO 8601日時を相対時間 (○時間前 / ○日前 / ○年前) に変換"""
+    if not value:
+        return ""
+    try:
+        published_at = isodate.parse_datetime(value)
+        now = datetime.now(timezone.utc)
+        diff = now - published_at
+
+        hours = int(diff.total_seconds() // 3600)
+        if hours < 24:
+            return f"{max(hours, 1)}時間前"
+
+        days = int(diff.days)
+        if days < 365:
+            return f"{days}日前"
+        
+        years = days // 365
+        return f"{years}年前"
+    except:
+        return value
+

@@ -89,7 +89,10 @@
                             </div>
                             <h3>{{ video.title }}</h3>
 
-                            <p style="color: #aaa; font-size: 0.8em; margin-bottom: 10px;">{{ video.channel_title }}</p>
+                            <p style="color: #aaa; font-size: 0.8em; margin-bottom: 4px;">{{ video.channel_title }}</p>
+                            <p style="color: #aaa; font-size: 0.8em; margin-bottom: 10px;">
+                                {{ video.view_count|format_views }}回視聴・{{ video.published_at|relative_time }}
+                            </p>
                             <!-- HTMX を使用して再生するように変更 -->
                             <button
                                hx-get="{% url 'youtube_app:select_video' %}?video_id={{ video.video_id }}"

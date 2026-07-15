@@ -382,7 +382,7 @@ def recommendations_view(request):
                 youtube,
                 list(unique_raw),
                 threshold=(0, 100000000),
-                min_dur=0, max_dur=1000,
+                min_dur=3, max_dur=1000,
                 is_live=False
             )
         else:

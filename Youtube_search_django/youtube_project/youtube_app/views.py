@@ -389,8 +389,8 @@ def recommendations_view(request):
         else:
             results = []
             
-        # 1時間キャッシュ
-        cache.set(cache_key, results, 3600)
+        # 2時間キャッシュ
+        cache.set(cache_key, results, 7200)
 
     return render(request, 'youtube_app/recommendations.html', {'results': results})
 # ============================================================================

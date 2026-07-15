@@ -1,4 +1,5 @@
-{% load static humanize %}
+{% load static humanize youtube_filters %}
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -74,11 +75,19 @@
 
                 <div class="horizontal-scroll">
                     {% for video in results %}
-                        <div class="recommend-item">
-                            <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}">
+                                                <div class="recommend-item">
+                            <div style="position: relative;">
+                                <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}">
+                                {% if video.duration_formatted %}
+                                    <span style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: white; padding: 2px 4px; border-radius: 4px; font-size: 0.75em;">
+                                        {{ video.duration_formatted|parse_duration }}
+                                    </span>
+                                {% endif %}
+                            </div>
                             <h3>{{ video.title }}</h3>
+
                             <p style="color: #aaa; font-size: 0.8em; margin-bottom: 10px;">{{ video.channel_title }}</p>
-                            <a href="{% url 'youtube_app:search' %}?query={{ video.title|urlencode }}&select={{ video.video_id }}" class="primary-button" style="text-align: center; display: block; font-size: 0.85em; padding: 8px; background-color: #cc0000;">再生・詳細</a>
+                            <a href="{% url 'youtube_app:search' %}?query={{ video.title|urlencode }}&select={{ video.video_id }}" class="primary-button" style="text-align: center; display: block; font-size: 0.85em; padding: 8px; background-color: #cc0000;">再生</a>
                         </div>
                     {% endfor %}
                 </div>

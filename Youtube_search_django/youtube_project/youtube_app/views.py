@@ -254,8 +254,11 @@ def build_search_results(youtube, raw_items, threshold, min_dur, max_dur, is_liv
             'subscriber_count': item['subscriber_count'],
             'buzz_rate': buzz_rate,
             'display_time': display_time,
+            'duration_formatted': content_details.get('duration', ''), # 生のISO8601形式を保持
             'embeddable': detail.get('status', {}).get('embeddable', True),
         })
+
+
 
     return results
 

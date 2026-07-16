@@ -438,75 +438,94 @@ def build_query_string_without_select(request):
 # ============================================================================
 @login_required # 検索もログイン必須にする場合
 def search_view(request):
-    context = get_query_parameters(request)
+    if not request.GET and 'last_search_params' in request.session:
+        saved_params = request.session['last_search_params']
+        context = get_query_parameters(request) # デフォルト値で初期化
+        context.update(saved_params)            # 保存されていた値で上書き
+    else:
+        context = get_query_parameters(request)
+
     context['base_query_string'] = build_query_string_without_select(request)
     context['is_video_mode'] = context['target'] == 'video'
     context['results'] = []
     context['error_message'] = ''
 
-    if request.GET:
+    # 2. 検索実行判定
+    if request.GET or (not request.GET and 'last_search_results' in request.session):
         try:
-            youtube = get_api_client()
-            published_after = build_published_after(context['date_option'])
-            user_id = request.user.id if request.user.is_authenticated else None
-            if context['target'] == 'video':
-                raw_results = search_videos(
-                    youtube,
-                    q=context['query'],
-                    max_results=context['max_results'],
-                    order=context['order'],
-                    published_after=published_after,
-                    user_id=user_id
-                )
-                context['results'] = build_search_results(
-                    youtube,
-                    raw_results,
-                    threshold=(context['lower_threshold'], context['upper_threshold']),
-                    min_dur=context['min_duration'],
-                    max_dur=context['max_duration'],
-                    is_live=False,
-                )
+            # 検索結果がセッションにあり、かつ新規検索（GET）でない場合はセッションから取得
+            if not request.GET and 'last_search_results' in request.session:
+                context['results'] = request.session['last_search_results']
             else:
-                raw_results = search_live_streams(
-                    youtube,
-                    q=context['query'],
-                    max_results=context['max_results'],
-                    order=context['order'],
-                )
-                context['results'] = build_search_results(
-                    youtube,
-                    raw_results,
-                    threshold=(context['lower_threshold'], context['upper_threshold']),
-                    min_dur=0,
-                    max_dur=0,
-                    is_live=True,
-                )
+                # 新規検索の実行
+                youtube = get_api_client()
+                published_after = build_published_after(context['date_option'])
+                user_id = request.user.id if request.user.is_authenticated else None
+                if context['target'] == 'video':
+                    raw_results = search_videos(
+                        youtube,
+                        q=context['query'],
+                        max_results=context['max_results'],
+                        order=context['order'],
+                        published_after=published_after,
+                        user_id=user_id
+                    )
+                    context['results'] = build_search_results(
+                        youtube,
+                        raw_results,
+                        threshold=(context['lower_threshold'], context['upper_threshold']),
+                        min_dur=context['min_duration'],
+                        max_dur=context['max_duration'],
+                        is_live=False,
+                    )
+                else:
+                    raw_results = search_live_streams(
+                        youtube,
+                        q=context['query'],
+                        max_results=context['max_results'],
+                        order=context['order'],
+                        user_id=user_id,
+                    )
+                    context['results'] = build_search_results(
+                        youtube,
+                        raw_results,
+                        threshold=(context['lower_threshold'], context['upper_threshold']),
+                        min_dur=0,
+                        max_dur=0,
+                        is_live=True,
+                    )
 
-            # 検索結果をセッションに保存（target情報を付与）
-            for r in context['results']:
-                r['target'] = context['target']
-            request.session['search_results'] = context['results']
+                # --- セッションへの保存 (シリアライズ可能なデータのみ) ---
+                # context全体ではなく、入力パラメータのみを抽出して保存
+                save_keys = ['target', 'query', 'max_results', 'order', 'lower_threshold', 'upper_threshold', 'min_duration', 'max_duration', 'date_option']
+                request.session['last_search_params'] = {k: context[k] for k in save_keys if k in context}
+                request.session['last_search_results'] = context['results']
+                
+                # select_video 用
+                request.session['search_results'] = context['results']
 
-            context['selected_video_id'] = context['selected_video_id'] or (context['results'][0]['video_id'] if context['results'] else '')
+            context['selected_video_id'] = context.get('selected_video_id') or (context['results'][0]['video_id'] if context['results'] else '')
 
-            if 'query' in request.GET and 'select' not in request.GET:
-                # ログインユーザーの履歴のみを整理
-                history_ids = SearchHistory.objects.filter(user=request.user).values_list('id', flat=True)[:99]
-                SearchHistory.objects.filter(user=request.user).exclude(id__in=list(history_ids)).delete()
+            # 新規検索時（セッション復元でない時）のみ履歴 DB に保存
+            if request.GET and 'query' in request.GET and 'select' not in request.GET:
+                if request.user.is_authenticated:
+                    # ログインユーザーの履歴のみを整理
+                    history_ids = SearchHistory.objects.filter(user=request.user).values_list('id', flat=True)[:99]
+                    SearchHistory.objects.filter(user=request.user).exclude(id__in=list(history_ids)).delete()
 
-                SearchHistory.objects.create(
-                    user=request.user, # ユーザーを保存
-                    target=context['target'],
-                    query=context['query'],
-                    max_results=context['max_results'],
-                    order=context['order'],
-                    lower_threshold=context['lower_threshold'],
-                    upper_threshold=context['upper_threshold'],
-                    min_duration=context['min_duration'],
-                    max_duration=context['max_duration'],
-                    date_option=context['date_option'],
-                    results_count=len(context['results']),
-                )
+                    SearchHistory.objects.create(
+                        user=request.user, # ユーザーを保存
+                        target=context['target'],
+                        query=context['query'],
+                        max_results=context['max_results'],
+                        order=context['order'],
+                        lower_threshold=context['lower_threshold'],
+                        upper_threshold=context['upper_threshold'],
+                        min_duration=context['min_duration'],
+                        max_duration=context['max_duration'],
+                        date_option=context['date_option'],
+                        results_count=len(context['results']),
+                    )
 
         except HttpError as e:
             context['error_message'] = get_error_message(e)

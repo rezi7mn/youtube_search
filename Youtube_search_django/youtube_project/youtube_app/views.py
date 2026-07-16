@@ -189,8 +189,10 @@ def format_elapsed_time(start_time_str: str) -> str:
 # ============================================================================
 # YouTube 検索 API 呼び出し
 # ============================================================================
-def search_videos(youtube, q: str, max_results: int, order: str, published_after: str):
-    cache_key = f'yt_search_video::{q}::{max_results}::{order}::{published_after or "none"}'
+def search_videos(youtube, q: str, max_results: int, order: str, published_after: str, user_id=None):
+    # キャッシュキーに user_id を含める
+    user_suffix = f"::user_{user_id}" if user_id else ""
+    cache_key = f'yt_search_video::{q}::{max_results}::{order}::{published_after or "none"}{user_suffix}'
 
     def loader():
         params = {
@@ -208,8 +210,10 @@ def search_videos(youtube, q: str, max_results: int, order: str, published_after
     return extract_items_from_search(response)
 
 
-def search_live_streams(youtube, q: str, max_results: int, order: str):
-    cache_key = f'yt_search_live::{q}::{max_results}::{order}'
+def search_live_streams(youtube, q: str, max_results: int, order: str, user_id=None):
+    # キャッシュキーに user_id を含める
+    user_suffix = f"::user_{user_id}" if user_id else ""
+    cache_key = f'yt_search_live::{q}::{max_results}::{order}{user_suffix}'
 
     def loader():
         return youtube.search().list(
@@ -444,7 +448,7 @@ def search_view(request):
         try:
             youtube = get_api_client()
             published_after = build_published_after(context['date_option'])
-
+            user_id = request.user.id if request.user.is_authenticated else None
             if context['target'] == 'video':
                 raw_results = search_videos(
                     youtube,
@@ -452,7 +456,8 @@ def search_view(request):
                     max_results=context['max_results'],
                     order=context['order'],
                     published_after=published_after,
-            )
+                    user_id=user_id
+                )
                 context['results'] = build_search_results(
                     youtube,
                     raw_results,

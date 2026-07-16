@@ -189,10 +189,9 @@ def format_elapsed_time(start_time_str: str) -> str:
 # ============================================================================
 # YouTube 検索 API 呼び出し
 # ============================================================================
-def search_videos(youtube, q: str, max_results: int, order: str, published_after: str, user_id=None):
+def search_videos(youtube, q: str, max_results: int, order: str, published_after: str):
     # キャッシュキーに user_id を含める
-    user_suffix = f"::user_{user_id}" if user_id else ""
-    cache_key = f'yt_search_video::{q}::{max_results}::{order}::{published_after or "none"}{user_suffix}'
+    cache_key = f'yt_search_video::{q}::{max_results}::{order}::{published_after or "none"}'
 
     def loader():
         params = {
@@ -210,10 +209,9 @@ def search_videos(youtube, q: str, max_results: int, order: str, published_after
     return extract_items_from_search(response)
 
 
-def search_live_streams(youtube, q: str, max_results: int, order: str, user_id=None):
+def search_live_streams(youtube, q: str, max_results: int, order: str):
     # キャッシュキーに user_id を含める
-    user_suffix = f"::user_{user_id}" if user_id else ""
-    cache_key = f'yt_search_live::{q}::{max_results}::{order}{user_suffix}'
+    cache_key = f'yt_search_live::{q}::{max_results}::{order}'
 
     def loader():
         return youtube.search().list(
@@ -468,7 +466,6 @@ def search_view(request):
                         max_results=context['max_results'],
                         order=context['order'],
                         published_after=published_after,
-                        user_id=user_id
                     )
                     context['results'] = build_search_results(
                         youtube,
@@ -484,7 +481,6 @@ def search_view(request):
                         q=context['query'],
                         max_results=context['max_results'],
                         order=context['order'],
-                        user_id=user_id,
                     )
                     context['results'] = build_search_results(
                         youtube,

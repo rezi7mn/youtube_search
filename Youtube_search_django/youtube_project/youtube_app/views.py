@@ -366,13 +366,13 @@ def get_recommendation_queries(watch_history, search_history):
 
 @login_required
 def recommendations_view(request):
-    """おすすめ動画を表示する専用ビュー"""
-    cache_key = 'user_recommendations_data'
+    """ログインユーザーの履歴に基づいたおすすめを表示"""
+    cache_key = f'user_recommendations_data_{request.user.id}' # キャッシュキーをユーザーごとに分ける
     results = cache.get(cache_key)
 
     if results is None:
-        watch_history = WatchHistory.objects.all()
-        search_history = SearchHistory.objects.all()
+        watch_history = WatchHistory.objects.filter(user=request.user)
+        search_history = SearchHistory.objects.filter(user=request.user)
 
         if not watch_history and not search_history:
             return render(request, 'youtube_app/recommendations.html', {'results': [], 'message': '履歴が足りないためおすすめを表示できません。'})
@@ -382,7 +382,7 @@ def recommendations_view(request):
 
 
         raw_results = []
-        watched_ids = set(WatchHistory.objects.values_list('video_id', flat=True))
+        watched_ids = set(WatchHistory.objects.filter(user=request.user).values_list('video_id', flat=True))
 
         for q in queries:
             try:
@@ -418,9 +418,10 @@ def recommendations_view(request):
         else:
             results = []
             
-        # 2時間キャッシュ
+        cache.set(cache_key, results, 7200) # 2時間キャッシュ
 
-
+    context = {'results': results}
+    return render(request, 'youtube_app/recommendations.html', context)
 # ============================================================================
 # ヘルパー関数（URL パラメータ処理）
 # ============================================================================
@@ -431,6 +432,7 @@ def build_query_string_without_select(request):
 # ============================================================================
 # メインビュー：検索フォーム表示・検索実行・結果表示
 # ============================================================================
+@login_required # 検索もログイン必須にする場合
 def search_view(request):
     context = get_query_parameters(request)
     context['base_query_string'] = build_query_string_without_select(request)
@@ -450,7 +452,7 @@ def search_view(request):
                     max_results=context['max_results'],
                     order=context['order'],
                     published_after=published_after,
-        )
+            )
                 context['results'] = build_search_results(
                     youtube,
                     raw_results,
@@ -483,11 +485,12 @@ def search_view(request):
             context['selected_video_id'] = context['selected_video_id'] or (context['results'][0]['video_id'] if context['results'] else '')
 
             if 'query' in request.GET and 'select' not in request.GET:
-                # 最新100件を残して古い検索履歴を削除
-                history_ids = SearchHistory.objects.values_list('id', flat=True)[:99]
-                SearchHistory.objects.exclude(id__in=list(history_ids)).delete()
+                # ログインユーザーの履歴のみを整理
+                history_ids = SearchHistory.objects.filter(user=request.user).values_list('id', flat=True)[:99]
+                SearchHistory.objects.filter(user=request.user).exclude(id__in=list(history_ids)).delete()
 
                 SearchHistory.objects.create(
+                    user=request.user, # ユーザーを保存
                     target=context['target'],
                     query=context['query'],
                     max_results=context['max_results'],
@@ -505,7 +508,8 @@ def search_view(request):
         except Exception as e:
             context['error_message'] = str(e)
 
-    context['recent_history'] = SearchHistory.objects.all()[:5]
+    # ログインユーザーの履歴のみを表示
+    context['recent_history'] = SearchHistory.objects.filter(user=request.user)[:5] if request.user.is_authenticated else []
     return render(request, 'youtube_app/search.html', context)
 
 
@@ -514,9 +518,9 @@ def search_view(request):
 # ============================================================================
 @login_required
 def history_view(request):
-    """検索履歴と動画視聴履歴を一覧表示する。"""
-    search_list = SearchHistory.objects.all()
-    watch_list = WatchHistory.objects.all()
+    """ログインユーザーの履歴のみを一覧表示する。"""
+    search_list = SearchHistory.objects.filter(user=request.user)
+    watch_list = WatchHistory.objects.filter(user=request.user)
 
     # ページネーション設定
     search_page_num = request.GET.get('s_page', 1)
@@ -536,6 +540,7 @@ def history_view(request):
 # ============================================================================
 # HTMX エンドポイント：動画選択時にプレイヤーHTMLフラグメントを返す
 # ============================================================================
+@login_required
 def select_video(request):
     """HTMX からの動画選択リクエストに応じて、YouTube プレイヤーの HTML フラグメントを返す。"""
     video_id = request.GET.get('video_id', '')
@@ -548,16 +553,18 @@ def select_video(request):
 
     # 2. セッションにない場合、キャッシュ（おすすめ動画）から動画データを取得
     if not video_data:
-        recommendations = cache.get('user_recommendations_data', [])
+        cache_key = f'user_recommendations_data_{request.user.id}'
+        recommendations = cache.get(cache_key, [])
         video_data = next((item for item in recommendations if item['video_id'] == video_id), None)
 
     if video_data:
-        # 最新100件を残して古い視聴履歴を削除
-        history_ids = WatchHistory.objects.values_list('id', flat=True)[:99]
-        WatchHistory.objects.exclude(id__in=list(history_ids)).delete()
+        # ログインユーザーの視聴履歴を整理
+        history_ids = WatchHistory.objects.filter(user=request.user).values_list('id', flat=True)[:99]
+        WatchHistory.objects.filter(user=request.user).exclude(id__in=list(history_ids)).delete()
 
-        # WatchHistory に channel_title と tags を確実に保存
+        # ユーザーごとに保存・更新
         WatchHistory.objects.update_or_create(
+            user=request.user, # ユーザーを指定
             video_id=video_id,
             defaults={
                 'title': video_data.get('title', 'タイトルなし'),

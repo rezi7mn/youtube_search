@@ -141,7 +141,7 @@ if not YOUTUBE_API_KEY:
     YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY', '')
 
 AUTH_USER_MODEL = 'auth.User'
-LOGIN_URL = 'login'
+LOGIN_URL = 'youtube_app:login'
 
 LOGIN_REDIRECT_URL = 'youtube_app:search'
 LOGOUT_REDIRECT_URL = 'youtube_app:login'

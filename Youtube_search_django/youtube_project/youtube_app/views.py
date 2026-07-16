@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 
 import isodate
 from django.conf import settings
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.core.cache import cache
@@ -44,6 +44,12 @@ def signup_view(request):
         form = SignUpForm()
     return render(request, 'youtube_app/signup.html', {'form': form})
 
+# ============================================================================
+# ログアウト
+# ============================================================================
+def logout_view(request):
+    logout(request)
+    return redirect('youtube_app:login')
 # ============================================================================
 # YouTube API クライアント初期化
 # ============================================================================

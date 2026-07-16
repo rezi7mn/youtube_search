@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>新規登録 - YouTube検索アプリ</title>
+    <link rel="stylesheet" href="{% static 'youtube_app/style.css' %}">
+</head>
+<body style="background-color: #0f0f0f; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0;">
+    <div style="background: #1e1e1e; padding: 40px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+        <h2 style="margin-top: 0; text-align: center;">新規アカウント登録</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #aaa;">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p style="color: #ff4d4d; font-size: 0.8em; margin-top: 5px;">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" style="width: 100%; padding: 12px; background: #cc0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">登録する</button>
+        </form>
+        <p style="text-align: center; margin-top: 20px; font-size: 0.9em; color: #aaa;">
+            既にアカウントをお持ちですか？ <a href="{% url 'youtube_app:login' %}" style="color: #3ea6ff; text-decoration: none;">ログイン</a>
+        </p>
+    </div>
+</body>
+</html>

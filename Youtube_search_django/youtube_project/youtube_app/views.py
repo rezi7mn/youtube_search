@@ -7,10 +7,13 @@ from urllib.parse import urlencode
 
 import isodate
 from django.conf import settings
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
 from django.core.cache import cache
 from django.http import HttpRequest
 from django.core.paginator import Paginator
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from django.utils.translation import gettext as _
 from googleapiclient.discovery import build
@@ -19,8 +22,27 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from janome.tokenizer import Tokenizer
 
 from .models import SearchHistory, WatchHistory
+from .forms import SignUpForm, EmailAuthenticationForm
 
 
+class UserLoginView(LoginView):
+    """メールアドレス認証フォームを使用するログインビュー"""
+    template_name = 'youtube_app/login.html'
+    authentication_form = EmailAuthenticationForm
+
+# ============================================================================
+# ユーザー新規登録
+# ============================================================================
+def signup_view(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # 登録後すぐにログイン
+            return redirect('youtube_app:search')
+    else:
+        form = SignUpForm()
+    return render(request, 'youtube_app/signup.html', {'form': form})
 
 # ============================================================================
 # YouTube API クライアント初期化
@@ -336,6 +358,7 @@ def get_recommendation_queries(watch_history, search_history):
 
     return list(set(generated_queries)) # 重複除去
 
+@login_required
 def recommendations_view(request):
     """おすすめ動画を表示する専用ビュー"""
     cache_key = 'user_recommendations_data'
@@ -390,9 +413,8 @@ def recommendations_view(request):
             results = []
             
         # 2時間キャッシュ
-        cache.set(cache_key, results, 7200)
 
-    return render(request, 'youtube_app/recommendations.html', {'results': results})
+
 # ============================================================================
 # ヘルパー関数（URL パラメータ処理）
 # ============================================================================
@@ -484,6 +506,7 @@ def search_view(request):
 # ============================================================================
 # 履歴表示ビュー
 # ============================================================================
+@login_required
 def history_view(request):
     """検索履歴と動画視聴履歴を一覧表示する。"""
     search_list = SearchHistory.objects.all()

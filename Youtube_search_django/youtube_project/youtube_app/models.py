@@ -63,3 +63,35 @@ class WatchHistory(models.Model):
     def __str__(self):
         return f'{self.title}'
 
+
+class FavoriteList(models.Model):
+    """お気に入りリスト（ユーザーごとに5つ）"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorite_lists')
+    name = models.CharField(max_length=100)
+    index = models.PositiveSmallIntegerField() # 1〜5の番号
+
+    class Meta:
+        unique_together = ('user', 'index')
+        ordering = ['index']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.name}"
+
+
+class FavoriteVideo(models.Model):
+    """お気に入り保存された動画データ"""
+    favorite_list = models.ForeignKey(FavoriteList, on_delete=models.CASCADE, related_name='videos')
+    video_id = models.CharField(max_length=20)
+    title = models.CharField(max_length=255)
+    thumbnail_url = models.URLField()
+    channel_title = models.CharField(max_length=255)
+    view_count = models.PositiveBigIntegerField(default=0)
+    video_type = models.CharField(max_length=16) # video or live
+    published_at = models.DateTimeField() # アップロード日
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('favorite_list', 'video_id') # 同じリストに同じ動画を入れない
+
+    def __str__(self):
+        return self.title

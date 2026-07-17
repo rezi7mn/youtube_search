@@ -1,6 +1,7 @@
 import os
 import random
 import re
+import hashlib
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
@@ -11,7 +12,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.core.cache import cache
-from django.http import HttpRequest
+from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 
@@ -21,7 +22,7 @@ from googleapiclient.errors import HttpError
 from sklearn.feature_extraction.text import TfidfVectorizer
 from janome.tokenizer import Tokenizer
 
-from .models import SearchHistory, WatchHistory
+from .models import SearchHistory, WatchHistory, FavoriteList, FavoriteVideo
 from .forms import SignUpForm, EmailAuthenticationForm
 
 
@@ -38,6 +39,8 @@ def signup_view(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
+            for i in range(1, 6):
+                FavoriteList.objects.create(user=user, index=i, name=f"リスト {i}")
             login(request, user)  # 登録後すぐにログイン
             return redirect('youtube_app:search')
     else:
@@ -123,7 +126,8 @@ def extract_items_from_search(response):
 # API レスポンス キャッシング
 # ============================================================================
 def cached_api_call(cache_key, loader, timeout=1200):
-    cached = cache.get(cache_key)
+    safe_key = hashlib.md5(cache_key.encode('utf-8')).hexdigest()
+    cached = cache.get(safe_key)
     if cached is not None:
         return cached
     result = loader()
@@ -368,13 +372,24 @@ def get_recommendation_queries(watch_history, search_history):
 
 @login_required
 def recommendations_view(request):
-    """ログインユーザーの履歴に基づいたおすすめを表示"""
-    cache_key = f'user_recommendations_data_{request.user.id}' # キャッシュキーをユーザーごとに分ける
+    """ログインユーザーの履歴に基づいたおすすめとお気に入りリストを表示"""
+     # --- お気に入りリストの取得 ---
+    favorite_lists = FavoriteList.objects.filter(user=request.user).order_by('index')
+    # まだリストがない場合は作成（初回アクセス時用）
+    if not favorite_lists.exists():
+        for i in range(1, 6):
+            FavoriteList.objects.create(user=request.user, index=i, name=f'リスト {i}')
+        favorite_lists = FavoriteList.objects.filter(user=request.user).order_by('index')
     
+    # --- おすすめ動画の取得 (既存のロジック) ---
+    cache_key_raw = f'user_recommendations_data_user_{request.user.id}' # キャッシュキーをユーザーごとに分ける
+    # ハッシュ化を適用
+    cache_key = hashlib.md5(cache_key_raw.encode('utf-8')).hexdigest()
+
     # GET引数に 'refresh' がある場合はキャッシュを削除する
     if 'refresh' in request.GET:
         cache.delete(cache_key)
-        
+
     results = cache.get(cache_key)
 
     if results is None:
@@ -427,7 +442,10 @@ def recommendations_view(request):
             
         cache.set(cache_key, results, 7200) # 2時間キャッシュ
 
-    context = {'results': results}
+    context = {
+        'results': results, # おすすめ動画
+        'favorite_lists': favorite_lists, # お気に入りリスト
+    }
     return render(request, 'youtube_app/recommendations.html', context)
 # ============================================================================
 # ヘルパー関数（URL パラメータ処理）
@@ -441,6 +459,32 @@ def build_query_string_without_select(request):
 # ============================================================================
 @login_required # 検索もログイン必須にする場合
 def search_view(request):
+    # --- POSTリクエスト（お気に入り保存）の処理 ---
+    if request.method == 'POST' and request.POST.get('add_favorite'):
+        video_id = request.POST.get('video_id')
+        list_id = request.POST.get('list_id')
+        
+        # セッションから該当する動画データを探す
+        all_results = request.session.get('last_search_results', [])
+        video_data = next((item for item in all_results if item['video_id'] == video_id), None)
+        
+        if video_data and request.user.is_authenticated:
+            fav_list = FavoriteList.objects.get(id=list_id, user=request.user)
+            FavoriteVideo.objects.get_or_create(
+                favorite_list=fav_list,
+                video_id=video_id,
+                defaults={
+                    'title': video_data['title'],
+                    'thumbnail_url': video_data['thumbnail_url'],
+                    'channel_title': video_data['channel_title'],
+                    'view_count': video_data.get('view_count', 0),
+                    'video_type': video_data.get('target', 'video'),
+                    'published_at': video_data.get('published_at', ''),
+                }
+            )
+        # 保存後は現在のURLにリダイレクト（二重送信防止）
+        return redirect(request.get_full_path())
+    
     if not request.GET and 'last_search_params' in request.session:
         saved_params = request.session['last_search_params']
         context = get_query_parameters(request) # デフォルト値で初期化
@@ -452,6 +496,18 @@ def search_view(request):
     context['is_video_mode'] = context['target'] == 'video'
     context['results'] = []
     context['error_message'] = ''
+
+    # ログイン済みなら、5つのマイリストを確保する
+    favorite_lists = []
+    if request.user.is_authenticated:
+        for i in range(1, 6):
+            obj, created = FavoriteList.objects.get_or_create(
+                user=request.user, index=i, 
+                defaults={'name': f'リスト {i}'}
+            )
+            favorite_lists.append(obj)
+    
+    context['favorite_lists'] = favorite_lists
 
     # 2. 検索実行判定
     if request.GET or (not request.GET and 'last_search_results' in request.session):
@@ -561,7 +617,6 @@ def history_view(request):
     return render(request, 'youtube_app/history.html', context)
 
 
-
 # ============================================================================
 # HTMX エンドポイント：動画選択時にプレイヤーHTMLフラグメントを返す
 # ============================================================================
@@ -603,3 +658,53 @@ def select_video(request):
         )
     return render(request, 'youtube_app/player_fragment.html', {'selected_video_id': video_id})
 
+
+# --- ヘルパー関数: ユーザーの5つのリストを確保する ---
+def get_user_favorite_lists(user):
+    lists = FavoriteList.objects.filter(user=user)
+    if lists.count() < 5:
+        for i in range(1, 6):
+            FavoriteList.objects.get_or_create(
+                user=user, order=i, 
+                defaults={'name': f'リスト {i}'}
+            )
+        lists = FavoriteList.objects.filter(user=user)
+    return lists
+
+@login_required
+def add_to_favorite(request):
+    """動画をお気に入りリストに追加する"""
+    if request.method == 'POST':
+        video_id = request.POST.get('video_id')
+        list_id = request.POST.get('list_id')
+        
+        # セッション等から動画詳細を取得
+        all_results = request.session.get('last_search_results', [])
+        video_data = next((item for item in all_results if item['video_id'] == video_id), None)
+        
+        if video_data:
+            fav_list = FavoriteList.objects.get(id=list_id, user=request.user)
+            FavoriteVideo.objects.get_or_create(
+                favorite_list=fav_list,
+                video_id=video_id,
+                defaults={
+                    'title': video_data['title'],
+                    'thumbnail_url': video_data['thumbnail_url'],
+                    'channel_title': video_data['channel_title'],
+                    'view_count': video_data.get('view_count', 0),
+                    'video_type': video_data.get('target', 'video'),
+                    'published_at': video_data.get('published_at', ''),
+                }
+            )
+    return redirect('youtube_app:search')
+
+@login_required
+def rename_favorite_list(request):
+    """リスト名を変更する"""
+    if request.method == 'POST':
+        list_id = request.POST.get('list_id')
+        new_name = request.POST.get('new_name')
+        fav_list = FavoriteList.objects.get(id=list_id, user=request.user)
+        fav_list.name = new_name
+        fav_list.save()
+        return redirect('youtube_app:recommendations')

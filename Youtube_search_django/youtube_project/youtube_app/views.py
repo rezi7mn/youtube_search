@@ -370,6 +370,11 @@ def get_recommendation_queries(watch_history, search_history):
 def recommendations_view(request):
     """ログインユーザーの履歴に基づいたおすすめを表示"""
     cache_key = f'user_recommendations_data_{request.user.id}' # キャッシュキーをユーザーごとに分ける
+    
+    # GET引数に 'refresh' がある場合はキャッシュを削除する
+    if 'refresh' in request.GET:
+        cache.delete(cache_key)
+        
     results = cache.get(cache_key)
 
     if results is None:

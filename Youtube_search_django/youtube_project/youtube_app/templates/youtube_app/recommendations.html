@@ -172,18 +172,20 @@
                                     <div id="video-item-{{ flist.id }}-{{ video.video_id }}" 
                                          style="display: flex; gap: 10px; margin-bottom: 12px; font-size: 0.85em; align-items: flex-start;">
                                         
-                                        <img src="{{ video.thumbnail_url }}" style="width: 100px; height: 56px; border-radius: 4px; object-fit: cover;">
+                                        <!-- サムネイルをクリック可能に変更 -->
+                                        <div style="cursor: pointer; flex-shrink: 0; position: relative;"
+                                             hx-get="{% url 'youtube_app:select_video' %}?video_id={{ video.video_id }}"
+                                             hx-target="#recommendation-player"
+                                             hx-swap="innerHTML"
+                                             title="再生する">
+                                            <img src="{{ video.thumbnail_url }}" style="width: 100px; height: 56px; border-radius: 4px; object-fit: cover; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
+                                        </div>
                                         
                                         <div style="flex-grow: 1;">
                                             <div style="color: #eee; line-height: 1.2; height: 2.4em; overflow: hidden; margin-bottom: 4px;">{{ video.title }}</div>
                                             <div style="color: #888; font-size: 0.8em; margin-bottom: 4px;">{{ video.channel_title }}</div>
                                             
                                             <div style="display: flex; gap: 10px; align-items: center;">
-                                                <button 
-                                                    hx-get="{% url 'youtube_app:select_video' %}?video_id={{ video.video_id }}"
-                                                    hx-target="#recommendation-player"
-                                                    hx-swap="innerHTML"
-                                                    style="background: none; border: none; color: #3ea6ff; padding: 0; font-size: 0.9em; cursor: pointer; text-decoration: underline;">再生</button>
                                                 
                                                 <!-- 削除ボタン：フォームを使わず直接パラメータを送る構成に変更 -->
                                                 <button 

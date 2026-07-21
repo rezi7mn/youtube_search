@@ -469,29 +469,39 @@ def search_view(request):
         all_results = request.session.get('last_search_results', [])
         video_data = next((item for item in all_results if item['video_id'] == video_id), None)
         
-        if video_data and request.user.is_authenticated:
-            try:
-                fav_list = FavoriteList.objects.get(id=list_id, user=request.user)
-                FavoriteVideo.objects.get_or_create(
-                    favorite_list=fav_list,
-                    video_id=video_id,
-                    defaults={
-                        'title': video_data['title'],
-                        'thumbnail_url': video_data['thumbnail_url'],
-                        'channel_title': video_data['channel_title'],
-                        'view_count': video_data.get('view_count', 0),
-                        'video_type': video_data.get('target', 'video'),
-                        'published_at': video_data.get('published_at', ''),
-                    }
-                )
-                if created:
-                    messages.success(request, f"「{video_data['title'][:20]}...」を「{fav_list.name}」に保存しました。")
-                else:
-                    messages.info(request, "この動画は既にそのリストに保存されています。")
-            except Exception as e:
-                messages.error(request, f"保存中にエラーが発生しました: {str(e)}")
+        if not video_data:
+            messages.error(request, "動画データが見つかりませんでした。再検索してください。")
+            return redirect(request.get_full_path())
+
+        try:
+            # 1. リストの存在確認
+            fav_list = FavoriteList.objects.get(id=list_id, user=request.user)
+            
+            # 2. 保存処理
+            obj, created = FavoriteVideo.objects.get_or_create(
+                favorite_list=fav_list,
+                video_id=video_id,
+                defaults={
+                    'title': video_data['title'],
+                    'thumbnail_url': video_data['thumbnail_url'],
+                    'channel_title': video_data['channel_title'],
+                    'view_count': video_data.get('view_count', 0),
+                    'video_type': video_data.get('target', 'video'),
+                    'published_at': video_data.get('published_at', ''),
+                }
+            )
+            
+            # ここなら必ず created が定義されている
+            if created:
+                messages.success(request, f"「{fav_list.name}」に保存しました。")
+            else:
+                messages.info(request, "既に保存されています。")
+
+        except FavoriteList.DoesNotExist:
+            messages.error(request, "選択されたリストが見つかりません。")
+        except Exception as e:
+            messages.error(request, f"エラーが発生しました: {str(e)}")
         
-        # 保存後は現在のURLにリダイレクト（二重送信防止）
         return redirect(request.get_full_path())
     
     if not request.GET and 'last_search_params' in request.session:

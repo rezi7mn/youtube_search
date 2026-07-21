@@ -381,14 +381,19 @@ def recommendations_view(request):
         if video_id and list_id:
             try:
                 # ユーザーが所有するリスト内の動画であることを確認して削除
-                FavoriteVideo.objects.filter(
-                    favorite_list__id=list_id, 
-                    favorite_list__user=request.user, 
-                    video_id=video_id
-                ).delete()
-                # 削除成功時は空のレスポンスを返す（HTMX側で要素を消すため）
+                fav_list = FavoriteList.objects.get(id=list_id, user=request.user)
+                FavoriteVideo.objects.filter(favorite_list=fav_list, video_id=video_id).delete()
+                
+                # 新しい本数を取得
+                new_count = fav_list.videos.count()
+                
                 from django.http import HttpResponse
-                return HttpResponse("") 
+                # 1. 削除対象の要素を消すための空文字
+                # 2. hx-swap-oob="true" を付けた要素を返すことで、別の場所（本数表示）を同時に書き換える
+                response_html = f'''
+                    <span id="video-count-{list_id}" hx-swap-oob="true" style="font-size: 0.8em; color: #777; margin-right: 10px;">{new_count} 本</span>
+                '''
+                return HttpResponse(response_html) 
             except Exception:
                 pass
         return HttpResponse(status=400)

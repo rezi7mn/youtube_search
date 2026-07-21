@@ -147,7 +147,7 @@
                                 <div class="display-area" style="display: flex; justify-content: space-between; align-items: center;">
                                     <h3 style="margin: 0; color: #f1f1f1;">{{ flist.name }}</h3>
                                     <div>
-                                        <span style="font-size: 0.8em; color: #777; margin-right: 10px;">{{ flist.videos.count }} 本</span>
+                                        <span id="video-count-{{ flist.id }}" style="font-size: 0.8em; color: #777; margin-right: 10px;">{{ flist.videos.count }} 本</span>
                                         <button type="button" onclick="this.closest('.list-header-container').classList.add('editing')" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 0.8em; text-decoration: underline;">編集</button>
                                     </div>
                                 </div>

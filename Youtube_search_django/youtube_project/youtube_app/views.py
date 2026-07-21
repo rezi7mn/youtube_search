@@ -374,7 +374,49 @@ def get_recommendation_queries(watch_history, search_history):
 @login_required
 def recommendations_view(request):
     """ログインユーザーの履歴に基づいたおすすめとお気に入りリストを表示"""
-     # --- お気に入りリストの取得 ---
+    # --- HTMX による動画の削除処理 ---
+    if request.method == 'POST' and request.POST.get('delete_video'):
+        video_id = request.POST.get('video_id')
+        list_id = request.POST.get('list_id')
+        if video_id and list_id:
+            try:
+                # ユーザーが所有するリスト内の動画であることを確認して削除
+                FavoriteVideo.objects.filter(
+                    favorite_list__id=list_id, 
+                    favorite_list__user=request.user, 
+                    video_id=video_id
+                ).delete()
+                # 削除成功時は空のレスポンスを返す（HTMX側で要素を消すため）
+                from django.http import HttpResponse
+                return HttpResponse("") 
+            except Exception:
+                pass
+        return HttpResponse(status=400)
+    
+    # --- HTMX によるリスト名更新の処理 ---
+    if request.method == 'POST' and request.POST.get('update_list_name'):
+        list_id = request.POST.get('list_id')
+        new_name = request.POST.get('new_name')
+        if list_id and new_name:
+            try:
+                fav_list = FavoriteList.objects.get(id=list_id, user=request.user)
+                fav_list.name = new_name
+                fav_list.save()
+                # 更新後の「タイトル表示部分」のHTMLだけを返す
+                from django.http import HttpResponse
+                html = f'''
+                    <h3 style="margin: 0; color: #f1f1f1;">{fav_list.name}</h3>
+                    <div>
+                        <span style="font-size: 0.8em; color: #777; margin-right: 10px;">{fav_list.videos.count()} 本</span>
+                        <button type="button" onclick="document.getElementById('list-header-{fav_list.id}').classList.add('editing')" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 0.8em; text-decoration: underline;">編集</button>
+                    </div>
+                '''
+                return HttpResponse(html)
+            except FavoriteList.DoesNotExist:
+                return HttpResponse("Error", status=404)
+        return HttpResponse("Invalid", status=400)
+    
+    # --- お気に入りリストの取得 ---
     favorite_lists = FavoriteList.objects.filter(user=request.user).order_by('index')
     # まだリストがない場合は作成（初回アクセス時用）
     if not favorite_lists.exists():

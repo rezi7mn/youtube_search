@@ -51,6 +51,21 @@
             gap: 10px;
             color: #eee; /* 見出しの色を調整 */
         }
+        .list-header-container.editing .display-area { display: none !important; }
+        .list-header-container.editing .edit-area { display: flex !important; }
+        .list-header-container .edit-area { display: none; }
+        /* 更新時に一瞬光らせるアニメーション */
+        .updated-flash {
+            animation: highlight-blue 1.5s ease-out;
+        }
+
+        @keyframes highlight-blue {
+            0% { background-color: rgba(62, 166, 255, 0.4); border-radius: 4px; }
+            100% { background-color: transparent; }
+        }
+        /* 編集モード時に削除ボタンを表示するためのスタイル */
+        .panel-card .delete-btn { display: none; }
+        .panel-card:has(.list-header-container.editing) .delete-btn { display: inline-block; }
     </style>
 </head>
 <body>
@@ -112,12 +127,43 @@
             <section>
                 <h2 class="section-title">⭐ お気に入り</h2>
                 
+                <!-- メッセージ表示（recommendationsページ用） -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div style="padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #333; color: #fff; font-size: 0.9em; border-left: 4px solid #3ea6ff;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px;">
                     {% for flist in favorite_lists %}
                         <div class="panel-card" style="background: #1a1a1a; padding: 15px; border: 1px solid #333;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 8px;">
-                                <h3 style="margin: 0; color: #f1f1f1;">{{ flist.name }}</h3>
-                                <span style="font-size: 0.8em; color: #777;">{{ flist.videos.count }} 本</span>
+                            
+                            <!-- HTMX による編集エリア -->
+                            <div id="list-header-{{ flist.id }}" class="list-header-container" style="margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 8px;">
+                                
+                                <!-- 表示エリア -->
+                                <div class="display-area" style="display: flex; justify-content: space-between; align-items: center;">
+                                    <h3 style="margin: 0; color: #f1f1f1;">{{ flist.name }}</h3>
+                                    <div>
+                                        <span style="font-size: 0.8em; color: #777; margin-right: 10px;">{{ flist.videos.count }} 本</span>
+                                        <button type="button" onclick="this.closest('.list-header-container').classList.add('editing')" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 0.8em; text-decoration: underline;">編集</button>
+                                    </div>
+                                </div>
+
+                                <!-- 編集フォーム (HTMX) -->
+                                <form class="edit-area" style="gap: 5px; align-items: center;"
+                                      hx-post="{% url 'youtube_app:recommendations' %}"
+                                      hx-target="#list-header-{{ flist.id }} .display-area"
+                                      hx-on::after-request="this.closest('.list-header-container').classList.remove('editing')">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="update_list_name" value="1">
+                                    <input type="hidden" name="list_id" value="{{ flist.id }}">
+                                    <input type="text" name="new_name" value="{{ flist.name }}" style="background: #333; color: #fff; border: 1px solid #555; padding: 4px 8px; border-radius: 4px; flex-grow: 1; font-size: 0.9em;">
+                                    <button type="submit" style="background: #3ea6ff; color: #000; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em; font-weight: bold;">保存</button>
+                                    <button type="button" onclick="this.closest('.list-header-container').classList.remove('editing')" style="background: none; border: none; color: #777; cursor: pointer; font-size: 0.8em;">取消</button>
+                                </form>
                             </div>
 
                             <div style="max-height: 400px; overflow-y: auto;">

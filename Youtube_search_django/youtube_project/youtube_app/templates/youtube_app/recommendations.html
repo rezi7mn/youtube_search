@@ -168,16 +168,36 @@
 
                             <div style="max-height: 400px; overflow-y: auto;">
                                 {% for video in flist.videos.all %}
-                                    <div style="display: flex; gap: 10px; margin-bottom: 12px; font-size: 0.85em;">
+                                    <!-- ID を確実に特定できるよう設定 -->
+                                    <div id="video-item-{{ flist.id }}-{{ video.video_id }}" 
+                                         style="display: flex; gap: 10px; margin-bottom: 12px; font-size: 0.85em; align-items: flex-start;">
+                                        
                                         <img src="{{ video.thumbnail_url }}" style="width: 100px; height: 56px; border-radius: 4px; object-fit: cover;">
+                                        
                                         <div style="flex-grow: 1;">
                                             <div style="color: #eee; line-height: 1.2; height: 2.4em; overflow: hidden; margin-bottom: 4px;">{{ video.title }}</div>
-                                            <div style="color: #888; font-size: 0.8em;">{{ video.channel_title }}</div>
-                                            <button 
-                                                hx-get="{% url 'youtube_app:select_video' %}?video_id={{ video.video_id }}"
-                                                hx-target="#recommendation-player"
-                                                hx-swap="innerHTML"
-                                                style="background: none; border: none; color: #3ea6ff; padding: 0; font-size: 0.9em; cursor: pointer; text-decoration: underline;">再生</button>
+                                            <div style="color: #888; font-size: 0.8em; margin-bottom: 4px;">{{ video.channel_title }}</div>
+                                            
+                                            <div style="display: flex; gap: 10px; align-items: center;">
+                                                <button 
+                                                    hx-get="{% url 'youtube_app:select_video' %}?video_id={{ video.video_id }}"
+                                                    hx-target="#recommendation-player"
+                                                    hx-swap="innerHTML"
+                                                    style="background: none; border: none; color: #3ea6ff; padding: 0; font-size: 0.9em; cursor: pointer; text-decoration: underline;">再生</button>
+                                                
+                                                <!-- 削除ボタン：フォームを使わず直接パラメータを送る構成に変更 -->
+                                                <button 
+                                                    class="delete-btn"
+                                                    hx-post="{% url 'youtube_app:recommendations' %}"
+                                                    hx-target="#video-item-{{ flist.id }}-{{ video.video_id }}"
+                                                    hx-swap="outerHTML"
+                                                    hx-confirm="この動画を「{{ flist.name }}」から削除しますか？"
+                                                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                                    hx-vals='{"delete_video": "1", "video_id": "{{ video.video_id }}", "list_id": "{{ flist.id }}"}'
+                                                    style="background: none; border: none; color: #ff4d4d; padding: 0; font-size: 0.9em; cursor: pointer; text-decoration: underline;">
+                                                    削除
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 {% empty %}

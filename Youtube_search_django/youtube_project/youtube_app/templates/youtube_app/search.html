@@ -128,7 +128,22 @@
                 <div class="panel-card">
                     <!-- HTMX で埋め込みプレイヤーを挿入するターゲットコンテナ -->
                     <div id="embedded-player"></div>
-
+                    
+                    <!-- Django メッセージの表示 -->
+                    {% if messages %}
+                        <div class="messages-container" style="margin-bottom: 20px;">
+                            {% for message in messages %}
+                                <div class="message {{ message.tags }}" style="padding: 10px 15px; border-radius: 4px; margin-bottom: 5px; font-size: 0.9em; 
+                                    {% if message.tags == 'success' %}background: #1b5e20; color: #fff; border-left: 5px solid #4caf50;
+                                    {% elif message.tags == 'info' %}background: #01579b; color: #fff; border-left: 5px solid #03a9f4;
+                                    {% elif message.tags == 'error' %}background: #b71c1c; color: #fff; border-left: 5px solid #f44336;
+                                    {% endif %}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
                     <!-- 検索結果情報表示 -->
                     <div class="results-header">
                         <div>

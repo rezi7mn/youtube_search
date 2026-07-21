@@ -8,6 +8,7 @@ from urllib.parse import urlencode
 
 import isodate
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
@@ -469,19 +470,27 @@ def search_view(request):
         video_data = next((item for item in all_results if item['video_id'] == video_id), None)
         
         if video_data and request.user.is_authenticated:
-            fav_list = FavoriteList.objects.get(id=list_id, user=request.user)
-            FavoriteVideo.objects.get_or_create(
-                favorite_list=fav_list,
-                video_id=video_id,
-                defaults={
-                    'title': video_data['title'],
-                    'thumbnail_url': video_data['thumbnail_url'],
-                    'channel_title': video_data['channel_title'],
-                    'view_count': video_data.get('view_count', 0),
-                    'video_type': video_data.get('target', 'video'),
-                    'published_at': video_data.get('published_at', ''),
-                }
-            )
+            try:
+                fav_list = FavoriteList.objects.get(id=list_id, user=request.user)
+                FavoriteVideo.objects.get_or_create(
+                    favorite_list=fav_list,
+                    video_id=video_id,
+                    defaults={
+                        'title': video_data['title'],
+                        'thumbnail_url': video_data['thumbnail_url'],
+                        'channel_title': video_data['channel_title'],
+                        'view_count': video_data.get('view_count', 0),
+                        'video_type': video_data.get('target', 'video'),
+                        'published_at': video_data.get('published_at', ''),
+                    }
+                )
+                if created:
+                    messages.success(request, f"「{video_data['title'][:20]}...」を「{fav_list.name}」に保存しました。")
+                else:
+                    messages.info(request, "この動画は既にそのリストに保存されています。")
+            except Exception as e:
+                messages.error(request, f"保存中にエラーが発生しました: {str(e)}")
+        
         # 保存後は現在のURLにリダイレクト（二重送信防止）
         return redirect(request.get_full_path())
     

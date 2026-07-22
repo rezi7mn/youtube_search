@@ -22,26 +22,15 @@ class SearchHistory(models.Model):
     def __str__(self):
         return f'{self.query} ({self.target}) - {self.created_at:%Y-%m-%d %H:%M}'
 
-
-
-class WatchHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watch_histories', null=True, blank=True)
-    video_id = models.CharField(max_length=20) # unique=True を削除（ユーザーごとに持つため）
-    # ... existing fields ...
-
-    class Meta:
-        ordering = ['-watched_at']
-        unique_together = ('user', 'video_id') # ユーザーと動画IDのペアで一意にする
-
     def get_order_display_text(self):
-        mapping = {
-            'date': '新しい順',
-            'viewCount': '表示回数の多い順',
-            'rating': '評価が高い順',
-            'relevance': '関連性が高い順',
-        }
-        # マッピングになければ「関連度順」をデフォルトにする
-        return mapping.get(self.order, '関連性が高い順')
+            mapping = {
+                'date': '新しい順',
+                'viewCount': '表示回数の多い順',
+                'rating': '評価が高い順',
+                'relevance': '関連性が高い順',
+            }
+            # マッピングになければ「関連度順」をデフォルトにする
+            return mapping.get(self.order, '関連性が高い順')
 
 
 class WatchHistory(models.Model):
@@ -87,7 +76,7 @@ class FavoriteVideo(models.Model):
     channel_title = models.CharField(max_length=255)
     view_count = models.PositiveBigIntegerField(default=0)
     video_type = models.CharField(max_length=16) # video or live
-    published_at = models.DateTimeField() # アップロード日
+    published_at = models.CharField(max_length=100) # アップロード日
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

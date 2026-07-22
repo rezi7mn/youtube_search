@@ -413,8 +413,8 @@ def recommendations_view(request):
                 html = f'''
                     <h3 style="margin: 0; color: #f1f1f1;">{fav_list.name}</h3>
                     <div>
-                        <span style="font-size: 0.8em; color: #777; margin-right: 10px;">{fav_list.videos.count()} 本</span>
-                        <button type="button" onclick="document.getElementById('list-header-{fav_list.id}').classList.add('editing')" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 0.8em; text-decoration: underline;">編集</button>
+                        <span id="video-count-{fav_list.id}" style="font-size: 0.8em; color: #777; margin-right: 10px;">{fav_list.videos.count()} 本</span>
+                        <button type="button" onclick="this.closest('.list-header-container').classList.add('editing')" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 0.8em; text-decoration: underline;">編集</button>
                     </div>
                 '''
                 return HttpResponse(html)
@@ -697,29 +697,31 @@ def select_video(request):
 
     # 2. セッションにない場合、キャッシュ（おすすめ動画）から動画データを取得
     if not video_data:
-        cache_key = f'user_recommendations_data_{request.user.id}'
+        cache_key_raw = f'user_recommendations_data_user_{request.user.id}'
+        cache_key = hashlib.md5(cache_key_raw.encode('utf-8')).hexdigest()
         recommendations = cache.get(cache_key, [])
         video_data = next((item for item in recommendations if item['video_id'] == video_id), None)
 
     if video_data:
         # ログインユーザーの視聴履歴を整理
-        history_ids = WatchHistory.objects.filter(user=request.user).values_list('id', flat=True)[:99]
-        WatchHistory.objects.filter(user=request.user).exclude(id__in=list(history_ids)).delete()
+        if request.user.is_authenticated:
+            history_ids = WatchHistory.objects.filter(user=request.user).values_list('id', flat=True)[:99]
+            WatchHistory.objects.filter(user=request.user).exclude(id__in=list(history_ids)).delete()
 
-        # ユーザーごとに保存・更新
-        WatchHistory.objects.update_or_create(
-            user=request.user, # ユーザーを指定
-            video_id=video_id,
-            defaults={
-                'title': video_data.get('title', 'タイトルなし'),
-                'thumbnail_url': video_data.get('thumbnail_url', ''),
-                'channel_title': video_data.get('channel_title', '不明'),
-                'tags': video_data.get('tags', []),
-                'view_count': video_data.get('view_count', 0),
-                'subscriber_count': video_data.get('subscriber_count', 0),
-                'video_type': video_data.get('target', 'video'),
-            }
-        )
+            # ユーザーごとに保存・更新
+            WatchHistory.objects.update_or_create(
+                user=request.user, # ユーザーを指定
+                video_id=video_id,
+                defaults={
+                    'title': video_data.get('title', 'タイトルなし'),
+                    'thumbnail_url': video_data.get('thumbnail_url', ''),
+                    'channel_title': video_data.get('channel_title', '不明'),
+                    'tags': video_data.get('tags', []),
+                    'view_count': video_data.get('view_count', 0),
+                    'subscriber_count': video_data.get('subscriber_count', 0),
+                    'video_type': video_data.get('target', 'video'),
+                }
+            )
     return render(request, 'youtube_app/player_fragment.html', {'selected_video_id': video_id})
 
 

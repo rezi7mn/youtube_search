@@ -519,12 +519,9 @@ def search_view(request):
         if not video_data:
             messages.error(request, "動画データが見つかりませんでした。再検索してください。")
             return redirect(request.get_full_path())
-
+        
         try:
-            # 1. リストの存在確認
             fav_list = FavoriteList.objects.get(id=list_id, user=request.user)
-            
-            # 2. 保存処理
             obj, created = FavoriteVideo.objects.get_or_create(
                 favorite_list=fav_list,
                 video_id=video_id,
@@ -534,7 +531,8 @@ def search_view(request):
                     'channel_title': video_data['channel_title'],
                     'view_count': video_data.get('view_count', 0),
                     'video_type': video_data.get('target', 'video'),
-                    'published_at': video_data.get('published_at', ''),
+                    # ここを確実に 'published_at' (生データ) にする
+                    'published_at': video_data.get('published_at', ''), 
                 }
             )
             

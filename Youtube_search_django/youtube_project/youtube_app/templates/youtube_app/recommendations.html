@@ -185,6 +185,11 @@
                                             <div style="color: #eee; line-height: 1.2; height: 2.4em; overflow: hidden; margin-bottom: 4px;">{{ video.title }}</div>
                                             <div style="color: #888; font-size: 0.8em; margin-bottom: 4px;">{{ video.channel_title }}</div>
                                             
+                                            <!-- 視聴回数と投稿時間の追加 -->
+                                            <div style="color: #666; font-size: 0.75em; margin-bottom: 4px;">
+                                                {{ video.view_count|format_views }}回視聴・{{ video.published_at|relative_time }}
+                                            </div>
+                                            
                                             <div style="display: flex; gap: 10px; align-items: center;">
                                                 
                                                 <!-- 削除ボタン：フォームを使わず直接パラメータを送る構成に変更 -->

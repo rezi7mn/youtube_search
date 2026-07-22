@@ -37,7 +37,14 @@ def relative_time(value):
     if not value:
         return ""
     try:
-        published_at = isodate.parse_datetime(value)
+        # 1. ISO 8601 形式 (2024-05-20T10:00:00Z) の解析を試みる
+        try:
+            published_at = isodate.parse_datetime(value)
+        except:
+            # 2. スラッシュ区切り (2024/05/20) などの形式を試みる
+            clean_value = value.replace('年', '-').replace('月', '-').replace('日', '').replace('/', '-')
+            published_at = datetime.strptime(clean_value.split(' ')[0], '%Y-%m-%d').replace(tzinfo=timezone.utc)
+
         now = datetime.now(timezone.utc)
         diff = now - published_at
 
@@ -51,6 +58,8 @@ def relative_time(value):
         
         years = days // 365
         return f"{years}年前"
-    except:
+    except Exception:
+        # 解析に失敗した場合は元の値をそのまま表示
         return value
+        
 

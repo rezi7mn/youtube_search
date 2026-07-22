@@ -227,12 +227,9 @@ body {
 }
 
 .actions-cell {
-  text-align: right;
-}
-
-.actions-cell {
-  display: flex;
-  justify-content: flex-end;
+  text-align: center;      /* 左右中央揃え */
+  vertical-align: middle;  /* 上下中央揃え */
+  white-space: nowrap;     /* 折り返し防止 */
 }
 
 .select-button {

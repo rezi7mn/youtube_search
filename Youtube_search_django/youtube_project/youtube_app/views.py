@@ -80,7 +80,7 @@ def get_query_parameters(request: HttpRequest) -> dict:
     return {
         'target': request.GET.get('target', 'video'),
         'query': request.GET.get('query', 'Python 自動化'),
-        'max_results': int(request.GET.get('max_results', 50) or 50),
+        # 'max_results': int(request.GET.get('max_results', 50) or 50),
         'order': request.GET.get('order', 'viewCount'),
         'lower_threshold': int(request.GET.get('lower_threshold', 100000) or 100000),
         'upper_threshold': int(request.GET.get('upper_threshold', 500000) or 500000),
@@ -588,7 +588,7 @@ def search_view(request):
                     raw_results = search_videos(
                         youtube,
                         q=context['query'],
-                        max_results=context['max_results'],
+                        max_results=50,
                         order=context['order'],
                         published_after=published_after,
                     )
@@ -604,7 +604,7 @@ def search_view(request):
                     raw_results = search_live_streams(
                         youtube,
                         q=context['query'],
-                        max_results=context['max_results'],
+                        max_results=50,
                         order=context['order'],
                     )
                     context['results'] = build_search_results(

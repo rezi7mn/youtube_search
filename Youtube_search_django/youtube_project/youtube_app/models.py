@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 class SearchHistory(models.Model):
     target = models.CharField(max_length=16, default='video')
     query = models.CharField(max_length=255)
-    max_results = models.PositiveSmallIntegerField(default=50)
+    # max_results = models.PositiveSmallIntegerField(default=50) # 検索上限数50で固定
     order = models.CharField(max_length=32, default='viewCount')
     lower_threshold = models.PositiveIntegerField(default=100000)
     upper_threshold = models.PositiveIntegerField(default=500000)

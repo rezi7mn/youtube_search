@@ -198,7 +198,7 @@
                                                 <!-- お気に入り追加フォーム -->
                                                 {% if user.is_authenticated %}
                                                 <div class="favorite-dropdown" style="position: relative; display: inline-block;">
-                                                    <button type="button" class="select-button" style="width: 100%; font-size: 0.75em; padding: 4px 8px; background: #333;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+                                                    <button type="button" class="select-button" style="font-size: 0.75em; padding: 4px 8px; background: #333; white-space: nowrap; width: auto;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
                                                         ⭐ お気に入り保存
                                                     </button>
                                                     <div class="list-menu" style="display: none; position: absolute; right: 0; top: 100%; background: #222; border: 1px solid #444; border-radius: 4px; z-index: 100; min-width: 120px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">

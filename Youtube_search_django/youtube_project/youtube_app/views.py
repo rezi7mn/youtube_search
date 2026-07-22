@@ -526,12 +526,11 @@ def search_view(request):
                 favorite_list=fav_list,
                 video_id=video_id,
                 defaults={
-                    'title': video_data['title'],
-                    'thumbnail_url': video_data['thumbnail_url'],
-                    'channel_title': video_data['channel_title'],
+                    'title': video_data.get('title'),
+                    'thumbnail_url': video_data.get('thumbnail_url'),
+                    'channel_title': video_data.get('channel_title'),
                     'view_count': video_data.get('view_count', 0),
                     'video_type': video_data.get('target', 'video'),
-                    # ここを確実に 'published_at' (生データ) にする
                     'published_at': video_data.get('published_at', ''), 
                 }
             )

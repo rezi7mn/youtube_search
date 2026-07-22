@@ -1,6 +1,7 @@
 import isodate
 from django import template
 from datetime import datetime, timezone
+from django.utils.dateparse import parse_datetime
 
 register = template.Library()
 
@@ -37,29 +38,47 @@ def relative_time(value):
     if not value:
         return ""
     try:
-        # 1. ISO 8601 形式 (2024-05-20T10:00:00Z) の解析を試みる
+        dt = None
+        # 1. ISO 8601形式 (2024-05-20T10:00:00Z) を試みる
         try:
-            published_at = isodate.parse_datetime(value)
+            dt = isodate.parse_datetime(value)
         except:
-            # 2. スラッシュ区切り (2024/05/20) などの形式を試みる
-            clean_value = value.replace('年', '-').replace('月', '-').replace('日', '').replace('/', '-')
-            published_at = datetime.strptime(clean_value.split(' ')[0], '%Y-%m-%d').replace(tzinfo=timezone.utc)
+            pass
 
+        # 2. Djangoの標準パーサーで試みる
+        if not dt:
+            dt = parse_datetime(value.replace('/', '-'))
+
+        # 3. それでもダメなら YYYY-MM-DD 形式として試みる
+        if not dt:
+            try:
+                clean_date = value.split(' ')[0].replace('/', '-')
+                dt = datetime.strptime(clean_date, '%Y-%m-%d').replace(tzinfo=timezone.utc)
+            except:
+                pass
+
+        if not dt:
+            return value # どうしても解析できない場合はそのまま表示
+
+        # タイムゾーンを考慮して現在の差分を計算
         now = datetime.now(timezone.utc)
-        diff = now - published_at
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+            
+        diff = now - dt
+        seconds = int(diff.total_seconds())
 
-        hours = int(diff.total_seconds() // 3600)
-        if hours < 24:
-            return f"{max(hours, 1)}時間前"
-
-        days = int(diff.days)
+        if seconds < 3600:
+            return f"{max(seconds // 60, 1)}分前"
+        if seconds < 86400:
+            return f"{seconds // 3600}時間前"
+        
+        days = diff.days
         if days < 365:
             return f"{days}日前"
-        
-        years = days // 365
-        return f"{years}年前"
+        return f"{days // 365}年前"
+
     except Exception:
-        # 解析に失敗した場合は元の値をそのまま表示
         return value
         
 

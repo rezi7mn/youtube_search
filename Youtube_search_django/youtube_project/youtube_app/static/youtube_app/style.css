@@ -236,8 +236,7 @@ body {
 }
 
 .select-button {
-  /* 💡 青いボタンの装飾を復元 */
-    background-color: #1a73e8; /* 青色の背景 */ /*#1a73e8*/
+    background-color: #1a73e8; /* 青色の背景 */
     color: #ffffff;            /* 白色の文字 */
     border-radius: 999px;        /* 角丸 */
     padding: 10px 16px;         /* ボタン内の上下左右の余白 */
@@ -245,7 +244,7 @@ body {
     font-weight: bold;         /* 太字 */
     text-decoration: none;     /* リンクの下線を消す */
 
-    /* 💡 ピッタリ真ん中に配置する設定 */
+    /* 真ん中に配置する設定 */
     display: inline-flex;
     align-items: center;       /* 上下中央揃え */
     justify-content: center;  /* 左右中央揃え */

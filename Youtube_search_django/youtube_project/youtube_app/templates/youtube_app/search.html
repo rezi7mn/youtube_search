@@ -17,18 +17,27 @@
 <body>
     <div class="page-shell">
         <header class="app-header">
-            <div>
-                <h1>YouTube検索アプリ</h1>
-                <p>動画とライブ配信の検索・フィルタリング・再生</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div>
+                    <h1>YouTube検索アプリ</h1>
+                    <p>動画とライブ配信の検索・フィルタリング・再生</p>
+                </div>
                 {% if user.is_authenticated %}
-                    <p>こんにちは、{{ user.username }}さん | <a href="{% url 'youtube_app:logout' %}">ログアウト</a></p>
-                {% else %}
-                    <a href="{% url 'youtube_app:login' %}">ログインはこちら</a>
+                    <p style="font-size: 0.9em; margin: 0;">こんにちは、{{ user.username }}さん</p>
                 {% endif %}
             </div>
-            <div style="margin-top: 10px; display: flex; gap: 10px;">
-                <a href="{% url 'youtube_app:recommendations' %}" class="select-button">おすすめ動画を見る</a>
-                <a href="{% url 'youtube_app:history' %}" class="select-button">履歴を見る</a>
+
+            <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <!-- 左側のナビゲーションボタン -->
+                <div style="display: flex; gap: 10px;">
+                    <a href="{% url 'youtube_app:recommendations' %}" class="select-button">おすすめ動画を見る</a>
+                    <a href="{% url 'youtube_app:history' %}" class="select-button">履歴を見る</a>
+                </div>
+
+                <!-- 右端のログアウトボタン -->
+                {% if user.is_authenticated %}
+                    <a href="{% url 'youtube_app:logout' %}" class="select-button" >ログアウト</a>
+                {% endif %}
             </div>
         </header>
 

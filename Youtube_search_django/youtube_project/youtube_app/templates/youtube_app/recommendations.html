@@ -75,10 +75,19 @@
                 <h1>✨ あなたへのおすすめ</h1>
                 <p>視聴履歴と検索履歴を選定しました</p>
             </div>
-            <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <a href="{% url 'youtube_app:search' %}" class="select-button">検索に戻る</a>
-                <a href="{% url 'youtube_app:history' %}" class="select-button">履歴を見る</a>
-                <a href="?refresh=1" class="select-button" style="background-color: #333; color: #fff; border: 1px solid #555;">🔄 おすすめを更新</a>
+
+            <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <!-- 左側のナビゲーションボタン -->
+                <div style="display: flex; gap: 10px;">
+                    <a href="{% url 'youtube_app:search' %}" class="select-button">検索に戻る</a>
+                    <a href="{% url 'youtube_app:history' %}" class="select-button">履歴を見る</a>
+                    <a href="?refresh=1" class="select-button" style="background-color: #333; color: #fff; border: 1px solid #555;">🔄 おすすめを更新</a>
+                </div>
+                
+                <!-- 右端のログアウトボタン -->
+                {% if user.is_authenticated %}
+                    <a href="{% url 'youtube_app:logout' %}" class="select-button" >ログアウト</a>
+                {% endif %}
             </div>
         </header>
 

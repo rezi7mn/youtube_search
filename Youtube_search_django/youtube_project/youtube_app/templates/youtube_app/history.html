@@ -14,11 +14,19 @@
                 <h1>🕒 履歴一覧</h1>
                 <p>過去の検索条件と、視聴した動画を確認できます</p>
             </div>
-            <div style="margin-top: 10px; display: flex; gap: 10px; align-items: center;">
-                <!-- 検索画面（トップページ）へのリンク -->
-                <a href="{% url 'youtube_app:search' %}" class="select-button">検索に戻る</a>
-                <!-- おすすめ動画へのリンク -->
-                <a href="{% url 'youtube_app:recommendations' %}" class="select-button">おすすめ動画を見る</a>
+            <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <!-- 左側のナビゲーションボタン -->
+                <div style="display: flex; gap: 10px;">
+                    <!-- 検索画面（トップページ）へのリンク -->
+                    <a href="{% url 'youtube_app:search' %}" class="select-button">検索に戻る</a>
+                    <!-- おすすめ動画へのリンク -->
+                    <a href="{% url 'youtube_app:recommendations' %}" class="select-button">おすすめ動画を見る</a>
+                </div>
+
+                <!-- 右端のログアウトボタン -->
+                {% if user.is_authenticated %}
+                    <a href="{% url 'youtube_app:logout' %}" class="select-button" >ログアウト</a>
+                {% endif %}
             </div>
         </header>
 

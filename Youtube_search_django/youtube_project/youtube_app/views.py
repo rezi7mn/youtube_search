@@ -618,7 +618,7 @@ def search_view(request):
 
                 # --- セッションへの保存 (シリアライズ可能なデータのみ) ---
                 # context全体ではなく、入力パラメータのみを抽出して保存
-                save_keys = ['target', 'query', 'max_results', 'order', 'lower_threshold', 'upper_threshold', 'min_duration', 'max_duration', 'date_option']
+                save_keys = ['target', 'query', 'order', 'lower_threshold', 'upper_threshold', 'min_duration', 'max_duration', 'date_option']
                 request.session['last_search_params'] = {k: context[k] for k in save_keys if k in context}
                 request.session['last_search_results'] = context['results']
                 
@@ -638,7 +638,7 @@ def search_view(request):
                         user=request.user, # ユーザーを保存
                         target=context['target'],
                         query=context['query'],
-                        max_results=context['max_results'],
+                        max_results=50,
                         order=context['order'],
                         lower_threshold=context['lower_threshold'],
                         upper_threshold=context['upper_threshold'],

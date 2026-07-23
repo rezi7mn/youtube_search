@@ -11,8 +11,14 @@
     <div class="page-shell">
         <header class="app-header">
             <div>
-                <h1><a href="{% url 'youtube_app:search' %}" style="color: inherit; text-decoration: none;">YouTube検索アプリ</a></h1>
-                <p>履歴一覧（検索履歴・視聴履歴）</p>
+                <h1>🕒 履歴一覧</h1>
+                <p>過去の検索条件と、視聴した動画を確認できます</p>
+            </div>
+            <div style="margin-top: 10px; display: flex; gap: 10px; align-items: center;">
+                <!-- 検索画面（トップページ）へのリンク -->
+                <a href="{% url 'youtube_app:search' %}" class="select-button">検索に戻る</a>
+                <!-- おすすめ動画へのリンク -->
+                <a href="{% url 'youtube_app:recommendations' %}" class="select-button">おすすめ動画を見る</a>
             </div>
         </header>
 

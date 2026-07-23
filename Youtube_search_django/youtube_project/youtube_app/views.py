@@ -638,7 +638,7 @@ def search_view(request):
                         user=request.user, # ユーザーを保存
                         target=context['target'],
                         query=context['query'],
-                        max_results=50,
+                        # max_results=50,
                         order=context['order'],
                         lower_threshold=context['lower_threshold'],
                         upper_threshold=context['upper_threshold'],

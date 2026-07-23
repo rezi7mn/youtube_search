@@ -113,26 +113,28 @@
                     </form>
                 </div>
 
-                                <!-- 検索履歴パネル -->
-                <div class="panel-card history-panel">
-                    <h2><a href="{% url 'youtube_app:history' %}" style="color: inherit; text-decoration: underline;">最近の検索履歴</a></h2>
-                    {% if recent_history %}
-                        <ul class="history-list">
-                            {% for history in recent_history %}
-                                <li>
-                                    <strong>{{ history.query }}</strong> · {{ history.target|title }} · {{ history.results_count }} 件<br>
-                                    <small style="color: #666;">
-                                        登録者: {{ history.lower_threshold|intcomma }}〜{{ history.upper_threshold|intcomma }}
-                                        {% if history.target == 'video' %}| 時間: {{ history.min_duration }}〜{{ history.max_duration }}分{% endif %}<br>
-                                        {{ history.created_at|date:'Y/m/d H:i' }}
-                                    </small>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <div class="message info">検索履歴はまだありません。</div>
-                    {% endif %}
-                </div>
+                <!-- 検索履歴パネル -->
+                {% if user.is_authenticated %}
+                    <div class="panel-card history-panel">
+                        <h2><a href="{% url 'youtube_app:history' %}" style="color: inherit; text-decoration: underline;">最近の検索履歴</a></h2>
+                        {% if recent_history %}
+                            <ul class="history-list">
+                                {% for history in recent_history %}
+                                    <li>
+                                        <strong>{{ history.query }}</strong> · {{ history.target|title }} · {{ history.results_count }} 件<br>
+                                        <small style="color: #666;">
+                                            登録者: {{ history.lower_threshold|intcomma }}〜{{ history.upper_threshold|intcomma }}
+                                            {% if history.target == 'video' %}| 時間: {{ history.min_duration }}〜{{ history.max_duration }}分{% endif %}<br>
+                                            {{ history.created_at|date:'Y/m/d H:i' }}
+                                        </small>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div class="message info">検索履歴はまだありません。</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
             </section>
 
     <!-- ================================================================== -->

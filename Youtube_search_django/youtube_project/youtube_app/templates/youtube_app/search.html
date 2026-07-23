@@ -24,19 +24,27 @@
                 </div>
                 {% if user.is_authenticated %}
                     <p style="font-size: 0.9em; margin: 0;">こんにちは、{{ user.username }}さん</p>
+                {% else %}
+                    <p style="font-size: 0.9em; margin: 0; color: #aaa;">ゲストとして閲覧中</p>
                 {% endif %}
             </div>
 
             <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
                 <!-- 左側のナビゲーションボタン -->
                 <div style="display: flex; gap: 10px;">
-                    <a href="{% url 'youtube_app:recommendations' %}" class="select-button">おすすめ動画を見る</a>
-                    <a href="{% url 'youtube_app:history' %}" class="select-button">履歴を見る</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'youtube_app:recommendations' %}" class="select-button">おすすめ動画を見る</a>
+                        <a href="{% url 'youtube_app:history' %}" class="select-button">履歴を見る</a>
+                    {% else %}
+                        <a href="{% url 'youtube_app:login' %}" class="select-button">ログインして全機能を使う</a>
+                    {% endif %}
                 </div>
 
                 <!-- 右端のログアウトボタン -->
                 {% if user.is_authenticated %}
-                    <a href="{% url 'youtube_app:logout' %}" class="select-button" >ログアウト</a>
+                    <a href="{% url 'youtube_app:logout' %}" class="select-button">ログアウト</a>
+                {% else %}
+                    <a href="{% url 'youtube_app:signup' %}" class="select-button">新規アカウント作成</a>
                 {% endif %}
             </div>
         </header>

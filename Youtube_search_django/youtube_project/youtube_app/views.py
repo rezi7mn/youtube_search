@@ -506,7 +506,6 @@ def build_query_string_without_select(request):
 # ============================================================================
 # メインビュー：検索フォーム表示・検索実行・結果表示
 # ============================================================================
-@login_required # 検索もログイン必須にする場合
 def search_view(request):
     # --- POSTリクエスト（お気に入り保存）の処理 ---
     if request.method == 'POST' and request.POST.get('add_favorite'):

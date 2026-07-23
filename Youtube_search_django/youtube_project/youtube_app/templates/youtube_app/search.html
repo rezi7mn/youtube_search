@@ -26,8 +26,9 @@
                     <a href="{% url 'youtube_app:login' %}">ログインはこちら</a>
                 {% endif %}
             </div>
-            <div style="margin-top: 10px;">
-                <a href="{% url 'youtube_app:recommendations' %}" class="primary-button" style="background-color: #ff0000; color: white; padding: 5px 15px; text-decoration: none; border-radius: 4px;">✨ おすすめ動画を見る</a>
+            <div style="margin-top: 10px; display: flex; gap: 10px;">
+                <a href="{% url 'youtube_app:recommendations' %}" class="primary-button" style="width: auto; background-color: #ff0000; color: white; padding: 5px 15px; text-decoration: none; border-radius: 4px;">✨ おすすめ動画を見る</a>
+                <a href="{% url 'youtube_app:history' %}" class="primary-button" style="width: auto; background-color: #444; color: white; padding: 5px 15px; text-decoration: none; border-radius: 4px;">🕒 履歴を見る</a>
             </div>
         </header>
 

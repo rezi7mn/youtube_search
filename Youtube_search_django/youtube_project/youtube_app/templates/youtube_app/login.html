@@ -6,7 +6,6 @@
     <title>ログイン - YouTube検索アプリ</title>
     <link rel="stylesheet" href="{% static 'youtube_app/style.css' %}">
 </head>
-<!-- 💡 flex-direction: column; を追加して縦並びに変更 -->
 <body style="background-color: #0f0f0f; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0;">
     
     <!-- ログインカードの上に表示 -->
@@ -47,9 +46,18 @@
             <button type="submit" style="width: 100%; padding: 12px; background: #cc0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">ログイン</button>
         </form>
         
-        <a href="{% url 'youtube_app:google_login' %}" style="display: block; width: 100%; padding: 12px; background: #4285F4; color: white; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold; margin-bottom: 10px;">
-            Google アカウントでログイン
+        <!-- 💡 区切り線 (OR) -->
+        <div style="display: flex; align-items: center; margin: 20px 0;">
+            <div style="flex-grow: 1; height: 1px; background-color: #333;"></div>
+            <span style="color: #888; padding: 0 10px; font-size: 0.85em;">または</span>
+            <div style="flex-grow: 1; height: 1px; background-color: #333;"></div>
+        </div>
+
+        <!-- 💡 Google公式ガイドラインに沿った画像ボタン -->
+        <a href="{% url 'youtube_app:google_login' %}" style="display: block; width: 100%; text-align: center; margin-bottom: 20px; opacity: 1; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+            <img src="{% static 'youtube_app/images/google_login.png' %}" alt="Google でログイン" style="max-width: 220px; width: 100%; height: auto; max-height: 40px; object-fit: contain; display: block; margin: 0 auto;">
         </a>
+        
         <p style="text-align: center; margin-top: 20px; font-size: 0.9em; color: #aaa;">
             アカウントをお持ちでないですか？ <a href="{% url 'youtube_app:signup' %}" style="color: #3ea6ff; text-decoration: none;">新規登録</a>
         </p>

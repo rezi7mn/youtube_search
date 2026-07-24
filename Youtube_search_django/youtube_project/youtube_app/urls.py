@@ -10,6 +10,8 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('select/', views.select_video, name='select_video'),
     path('history/', views.history_view, name='history'),
-    path('recommendations/', views.recommendations_view, name='recommendations'), # 追加
+    path('recommendations/', views.recommendations_view, name='recommendations'),
+    path('login/google/', views.google_login, name='google_login'),
+    path('login/google/callback/', views.google_callback, name='google_callback'),
 ]
 

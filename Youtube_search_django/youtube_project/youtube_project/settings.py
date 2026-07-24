@@ -125,23 +125,32 @@ STATIC_URL = 'static/'
 # The project structure may place secret.json one level above BASE_DIR,
 # so search both the parent and grandparent directories.
 YOUTUBE_API_KEY = ''
+GOOGLE_CLIENT_ID = ''
+GOOGLE_CLIENT_SECRET = ''
+
 secret_paths = [
     BASE_DIR / 'secret.json',
 ]
+
 for secret_path in secret_paths:
     if secret_path.exists():
         try:
             with open(secret_path, encoding='utf-8') as secret_file:
-                YOUTUBE_API_KEY = json.load(secret_file).get('KEY', '')
+                secrets_data = json.load(secret_file)
+                YOUTUBE_API_KEY = secrets_data.get('KEY', '')
+                GOOGLE_CLIENT_ID = secrets_data.get('GOOGLE_CLIENT_ID', '')
+                GOOGLE_CLIENT_SECRET = secrets_data.get('GOOGLE_CLIENT_SECRET', '')
         except Exception:
-            YOUTUBE_API_KEY = ''
+            pass
         break
 
+# 環境変数からのフォールバック設定（任意）
 if not YOUTUBE_API_KEY:
     YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY', '')
+if not GOOGLE_CLIENT_ID:
+    GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+if not GOOGLE_CLIENT_SECRET:
+    GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
 
-AUTH_USER_MODEL = 'auth.User'
-LOGIN_URL = 'youtube_app:login'
-
-LOGIN_REDIRECT_URL = 'youtube_app:search'
-LOGOUT_REDIRECT_URL = 'youtube_app:login'
+# リダイレクトURIの設定
+GOOGLE_REDIRECT_URI = 'http://localhost:8000/login/google/callback/'

@@ -7,9 +7,11 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 
 import isodate
+import requests
+import secrets, string
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.core.cache import cache
@@ -17,6 +19,7 @@ from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -27,11 +30,7 @@ from .models import SearchHistory, WatchHistory, FavoriteList, FavoriteVideo
 from .forms import SignUpForm, EmailAuthenticationForm
 
 
-class UserLoginView(LoginView):
-    """メールアドレス認証フォームを使用するログインビュー"""
-    template_name = 'youtube_app/login.html'
-    authentication_form = EmailAuthenticationForm
-
+User = get_user_model()
 # ============================================================================
 # ユーザー新規登録
 # ============================================================================
@@ -47,6 +46,79 @@ def signup_view(request):
     else:
         form = SignUpForm()
     return render(request, 'youtube_app/signup.html', {'form': form})
+# ============================================================================
+# ログイン
+# ============================================================================
+class UserLoginView(LoginView):
+    """メールアドレス認証フォームを使用するログインビュー"""
+    template_name = 'youtube_app/login.html'
+    authentication_form = EmailAuthenticationForm
+
+def google_login(request):
+    """ Google認証画面に遷移 """
+    oauth_url = 'https://accounts.google.com/o/oauth2/v2/auth'
+    params = {
+        'client_id': settings.GOOGLE_CLIENT_ID,
+        'response_type': 'code', # googleから返してほしいレスポンスの種類
+        'scope': 'email profile', # google垢のどの情報にアクセスしたいのか
+        'redirect_uri': settings.GOOGLE_REDIRECT_URI,
+        'prompt': 'select_account'
+    }
+    param_string = '&'.join([f'{key}={value}' for key, value in params.items()])
+    # client_id=xxxx&response_type=code&
+    auth_url = f'{oauth_url}?{param_string}'
+    print(auth_url)
+    return redirect(auth_url)
+
+# 実際の認証処理を行うview
+def google_callback(request):
+    """ Googleからのコールバック処理 """
+    # 認可コードを取得
+    code = request.GET.get('code')
+    # print('code: ', code)
+    # アクセストークンの取得
+    token_url = 'https://oauth2.googleapis.com/token'
+    token_params = {
+        'client_id': settings.GOOGLE_CLIENT_ID,
+        'client_secret': settings.GOOGLE_CLIENT_SECRET,
+        'code': code,
+        'grant_type': 'authorization_code',
+        'redirect_uri': settings.GOOGLE_REDIRECT_URI
+    }
+    token_response = requests.post(token_url, data=token_params)
+    token_data = token_response.json()
+    access_token = token_data.get('access_token')
+    # print('access_token: ', access_token)
+
+    # ユーザー情報の取得
+    user_info_url = 'https://www.googleapis.com/oauth2/v2/userinfo'
+    headers = {'Authorization': f'Bearer {access_token}'}
+    user_info_response = requests.get(user_info_url, headers=headers)
+    user_info = user_info_response.json()
+    # print('user_info: ', user_info)
+
+    # ユーザーの取得、作成
+    try:
+        user = User.objects.get(email=user_info['email'])
+    except User.DoesNotExist:
+        password = ''.join(
+            secrets.choice(
+                string.ascii_letters + string.digits + string.punctuation
+            ) for _ in range(32)
+        )
+        print('password: ', password)
+        user = User.objects.create_user(
+            username=user_info.get('name', user_info['email']), # usernameを修正
+            email=user_info['email'],
+            password=password
+        )
+        # 初回ログイン時に、お気に入りリスト5つを自動作成
+        for i in range(1, 6):
+            FavoriteList.objects.get_or_create(user=user, index=i, defaults={'name': f'リスト {i}'})
+        messages.info(request, 'Googleアカウントで新規登録しました。')
+
+    login(request, user)
+    return redirect('youtube_app:search')
 
 # ============================================================================
 # ログアウト

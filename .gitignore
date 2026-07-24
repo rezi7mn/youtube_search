@@ -1,2 +1,4 @@
 secret.json
 app.py
+*.pyc
+__pycache__/

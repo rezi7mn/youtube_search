@@ -153,4 +153,10 @@ if not GOOGLE_CLIENT_SECRET:
     GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
 
 # リダイレクトURIの設定
+AUTH_USER_MODEL = 'auth.User'
+LOGIN_URL = 'youtube_app:login'
+
+LOGIN_REDIRECT_URL = 'youtube_app:search'
+LOGOUT_REDIRECT_URL = 'youtube_app:login'
+
 GOOGLE_REDIRECT_URI = 'http://localhost:8000/login/google/callback/'

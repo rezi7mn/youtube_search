@@ -56,6 +56,8 @@
             <button type="submit" style="width: 100%; padding: 12px; background: #ff4242; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">ログイン</button>
         </form>
         
+        <a href="{% url 'youtube_app:password_reset' %}" style="font-size: 0.8em; color: #3ea6ff; text-decoration: none;">パスワードを忘れた場合</a>
+
         <!-- 💡 区切り線 (OR) -->
         <div style="display: flex; align-items: center; margin: 20px 0;">
             <div style="flex-grow: 1; height: 1px; background-color: #333;"></div>
@@ -67,8 +69,6 @@
         <a href="{% url 'youtube_app:google_login' %}" style="display: block; width: 100%; text-align: center; margin-bottom: 20px; opacity: 1; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
             <img src="{% static 'youtube_app/images/google_login.png' %}" alt="Google でログイン" style="max-width: 220px; width: 100%; height: auto; max-height: 40px; object-fit: contain; display: block; margin: 0 auto;">
         </a>
-        
-        <a href="{% url 'youtube_app:password_reset' %}" style="font-size: 0.8em; color: #3ea6ff; text-decoration: none;">パスワードを忘れた場合</a>
         
         <p style="text-align: center; margin-top: 20px; font-size: 0.9em; color: #aaa;">
             アカウントをお持ちでないですか？ <a href="{% url 'youtube_app:signup' %}" style="color: #3ea6ff; text-decoration: none;">新規登録</a>

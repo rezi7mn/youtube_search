@@ -160,3 +160,15 @@ LOGIN_REDIRECT_URL = 'youtube_app:search'
 LOGOUT_REDIRECT_URL = 'youtube_app:login'
 
 GOOGLE_REDIRECT_URI = 'http://localhost:8000/login/google/callback/'
+
+# メール送信設定 (Gmailを使用する場合の例)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'YOUR_EMAIL@gmail.com'         # 自分のGmailアドレス
+# EMAIL_HOST_PASSWORD = 'YOUR_APP_PASSWORD'        # Googleの「アプリパスワード」
+# DEFAULT_FROM_EMAIL = 'YouTube検索アプリ <YOUR_EMAIL@gmail.com>'
+
+# ※開発環境ですぐに試したい場合は、以下の一行だけに差し替えてください（コンソールに表示されます）
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

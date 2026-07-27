@@ -68,6 +68,8 @@
             <img src="{% static 'youtube_app/images/google_login.png' %}" alt="Google でログイン" style="max-width: 220px; width: 100%; height: auto; max-height: 40px; object-fit: contain; display: block; margin: 0 auto;">
         </a>
         
+        <a href="{% url 'youtube_app:password_reset' %}" style="font-size: 0.8em; color: #3ea6ff; text-decoration: none;">パスワードを忘れた場合</a>
+        
         <p style="text-align: center; margin-top: 20px; font-size: 0.9em; color: #aaa;">
             アカウントをお持ちでないですか？ <a href="{% url 'youtube_app:signup' %}" style="color: #3ea6ff; text-decoration: none;">新規登録</a>
         </p>

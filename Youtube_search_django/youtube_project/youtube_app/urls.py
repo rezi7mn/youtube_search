@@ -16,23 +16,25 @@ urlpatterns = [
     path('recommendations/', views.recommendations_view, name='recommendations'),
     path('login/google/', views.google_login, name='google_login'),
     path('login/google/callback/', views.google_callback, name='google_callback'),
+    # 送信先メールアドレス入力画面
     path('password_reset/', auth_views.PasswordResetView.as_view(
         template_name='youtube_app/password_reset.html',
-        email_template_name='youtube_app/password_reset_email.html', # メールの本文用
+        email_template_name='youtube_app/password_reset_email.html',
+        subject_template_name="youtube_app/password_reset_subject.txt",
         success_url='/password_reset/done/'
     ), name='password_reset'),
-    
+    # メール送信完了画面
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(
         template_name='youtube_app/password_reset_done.html'
     ), name='password_reset_done'),
 
-    # 3. リセット用リンククリック後のパスワード入力画面 (ここが抜けていました)
+    # リセット用リンククリック後のパスワード入力画面
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
         template_name='youtube_app/password_reset_confirm.html',
         success_url='/reset/done/'
     ), name='password_reset_confirm'),
 
-    # 4. パスワード変更完了画面
+    # パスワード変更完了画面
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='youtube_app/password_reset_complete.html'
     ), name='password_reset_complete'),

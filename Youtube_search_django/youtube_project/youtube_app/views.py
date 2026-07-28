@@ -755,18 +755,17 @@ def history_view(request):
 # ============================================================================
 # HTMX エンドポイント：動画選択時にプレイヤーHTMLフラグメントを返す
 # ============================================================================
-@login_required
 def select_video(request):
     """HTMX からの動画選択リクエストに応じて、YouTube プレイヤーの HTML フラグメントを返す。"""
     video_id = request.GET.get('video_id', '')
     if not video_id:
         return render(request, 'youtube_app/player_fragment.html', {'selected_video_id': ''})
 
-    # 1. セッション（検索結果）から動画データを取得
+    # セッション（検索結果）から動画データを取得
     search_results = request.session.get('search_results', [])
     video_data = next((item for item in search_results if item['video_id'] == video_id), None)
 
-    # 2. セッションにない場合、キャッシュ（おすすめ動画）から動画データを取得
+    # セッションにない場合、キャッシュ（おすすめ動画）から動画データを取得
     if not video_data:
         cache_key_raw = f'user_recommendations_data_user_{request.user.id}'
         cache_key = hashlib.md5(cache_key_raw.encode('utf-8')).hexdigest()

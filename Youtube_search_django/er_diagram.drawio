@@ -5,9 +5,21 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="FahzyXNxar82vkeT_Llw-16" parent="1" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" value="Entity" vertex="1">
-          <mxGeometry height="120" width="160" x="330" y="230" as="geometry" />
+          <mxGeometry height="120" width="160" x="350" y="230" as="geometry" />
         </mxCell>
         <mxCell id="FahzyXNxar82vkeT_Llw-17" parent="FahzyXNxar82vkeT_Llw-16" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;spacingRight=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;whiteSpace=wrap;" value="+Attribute1&#xa;+Attribute2&#xa;+Attribute3" vertex="1">
+          <mxGeometry height="70" width="160" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="FahzyXNxar82vkeT_Llw-18" parent="FahzyXNxar82vkeT_Llw-16" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;spacingRight=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;whiteSpace=wrap;" vertex="1">
+          <mxGeometry width="160" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="FahzyXNxar82vkeT_Llw-19" parent="FahzyXNxar82vkeT_Llw-16" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;spacingRight=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;whiteSpace=wrap;" vertex="1">
+          <mxGeometry width="160" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="FahzyXNxar82vkeT_Llw-25" parent="1" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" value="Entity" vertex="1">
+          <mxGeometry height="120" width="160" x="150" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="FahzyXNxar82vkeT_Llw-26" parent="FahzyXNxar82vkeT_Llw-25" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;spacingRight=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;whiteSpace=wrap;" value="+Attribute1&#xa;+Attribute2&#xa;+Attribute3" vertex="1">
           <mxGeometry height="70" width="160" y="50" as="geometry" />
         </mxCell>
       </root>

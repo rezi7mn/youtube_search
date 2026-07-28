@@ -1,4 +1,5 @@
 secret.json
 app.py
+generate_er_diagram.py
 *.pyc
 __pycache__/

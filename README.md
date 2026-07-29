@@ -39,7 +39,7 @@ Youtube動画詳細検索アプリです。
 ## 設計図 (ER図 / インフラ構成図)
 
 ### ER図
-![ER図の画像](URL)
+![ER図の画像](Youtube_search_django/image/er_diagram.png)
 
 ---
 

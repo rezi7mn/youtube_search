@@ -122,7 +122,7 @@
                                 {% for history in recent_history %}
                                     <li>
                                         <strong>{{ history.query }}</strong> · {{ history.target|title }} · {{ history.results_count }} 件<br>
-                                        <small style="color: #666;">
+                                        <small style="color: #94a3b8;">
                                             登録者: {{ history.lower_threshold|intcomma }}〜{{ history.upper_threshold|intcomma }}
                                             {% if history.target == 'video' %}| 時間: {{ history.min_duration }}〜{{ history.max_duration }}分{% endif %}<br>
                                             {{ history.created_at|date:'Y/m/d H:i' }}

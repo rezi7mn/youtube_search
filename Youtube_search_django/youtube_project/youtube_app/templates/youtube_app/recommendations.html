@@ -17,8 +17,8 @@
         }
         .recommend-item {
             flex: 0 0 280px; /* 横幅を固定して横並びに */
-            background: #1e1e1e; /* 背景色をダークグレーに変更 */
-            color: #f1f1f1;      /* 文字色を明るい白系に変更 */
+            background-color: #1e293b; /* 背景色をダークグレーに変更 */
+            color: #f8fafc;      /* 文字色を明るい白系に変更 */
             padding: 12px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
@@ -147,17 +147,17 @@
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px;">
                     {% for flist in favorite_lists %}
-                        <div class="panel-card" style="background: #1a1a1a; padding: 15px; border: 1px solid #333;">
+                        <div class="panel-card" style="background: #1e293b; padding: 15px; border: 1px solid #334155;">
                             
                             <!-- HTMX による編集エリア -->
-                            <div id="list-header-{{ flist.id }}" class="list-header-container" style="margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 8px;">
+                            <div id="list-header-{{ flist.id }}" class="list-header-container" style="margin-bottom: 15px; border-bottom: 1px solid #475569; padding-bottom: 8px;">
                                 
                                 <!-- 表示エリア -->
                                 <div class="display-area" style="display: flex; justify-content: space-between; align-items: center;">
-                                    <h3 style="margin: 0; color: #f1f1f1;">{{ flist.name }}</h3>
+                                    <h3 style="margin: 0; color: #f8fafc;">{{ flist.name }}</h3>
                                     <div>
-                                        <span id="video-count-{{ flist.id }}" style="font-size: 0.8em; color: #777; margin-right: 10px;">{{ flist.videos.count }} 本</span>
-                                        <button type="button" onclick="this.closest('.list-header-container').classList.add('editing')" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 0.8em; text-decoration: underline;">編集</button>
+                                        <span id="video-count-{{ flist.id }}" style="font-size: 0.8em; color: #94a3b8; margin-right: 10px;">{{ flist.videos.count }} 本</span>
+                                        <button type="button" onclick="this.closest('.list-header-container').classList.add('editing')" style="background: none; border: none; color: #3ea6ff; cursor: pointer; font-size: 0.8em; text-decoration: underline;">編集</button>
                                     </div>
                                 </div>
 

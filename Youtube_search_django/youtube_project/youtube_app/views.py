@@ -483,7 +483,7 @@ def recommendations_view(request):
                 # 更新後の「タイトル表示部分」のHTMLだけを返す
                 from django.http import HttpResponse
                 html = f'''
-                    <h3 style="margin: 0; color: #f1f1f1;">{fav_list.name}</h3>
+                    <h3 style="margin: 0; color: #f8fafc;">{fav_list.name}</h3>
                     <div>
                         <span id="video-count-{fav_list.id}" style="font-size: 0.8em; color: #777; margin-right: 10px;">{fav_list.videos.count()} 本</span>
                         <button type="button" onclick="this.closest('.list-header-container').classList.add('editing')" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 0.8em; text-decoration: underline;">編集</button>

@@ -619,8 +619,9 @@ def search_view(request):
             messages.error(request, f"エラーが発生しました: {str(e)}")
         
         return redirect(request.get_full_path())
-    
-    if not request.GET and 'last_search_params' in request.session:
+
+    # ログイン済みユーザーのみ、セッションからの復元を許可する
+    if request.user.is_authenticated and not request.GET and 'last_search_params' in request.session:
         saved_params = request.session['last_search_params']
         context = get_query_parameters(request) # デフォルト値で初期化
         context.update(saved_params)            # 保存されていた値で上書き
@@ -644,11 +645,13 @@ def search_view(request):
     
     context['favorite_lists'] = favorite_lists
 
-    # 2. 検索実行判定
-    if request.GET or (not request.GET and 'last_search_results' in request.session):
+    # --- 検索実行判定 ---
+    # ログイン済みユーザーはセッション結果も対象。未ログインはGETリクエスト時のみ。
+    has_results_in_session = request.user.is_authenticated and 'last_search_results' in request.session
+    if request.GET or (not request.GET and has_results_in_session):
         try:
-            # 検索結果がセッションにあり、かつ新規検索（GET）でない場合はセッションから取得
-            if not request.GET and 'last_search_results' in request.session:
+            # ログイン済みユーザーのみセッションから復元
+            if request.user.is_authenticated and not request.GET and 'last_search_results' in request.session:
                 context['results'] = request.session['last_search_results']
             else:
                 # 新規検索の実行
@@ -689,12 +692,18 @@ def search_view(request):
 
                 # --- セッションへの保存 (シリアライズ可能なデータのみ) ---
                 # context全体ではなく、入力パラメータのみを抽出して保存
-                save_keys = ['target', 'query', 'order', 'lower_threshold', 'upper_threshold', 'min_duration', 'max_duration', 'date_option']
-                request.session['last_search_params'] = {k: context[k] for k in save_keys if k in context}
-                request.session['last_search_results'] = context['results']
-                
-                # select_video 用
-                request.session['search_results'] = context['results']
+                if request.user.is_authenticated:
+                    save_keys = ['target', 'query', 'order', 'lower_threshold', 'upper_threshold', 'min_duration', 'max_duration', 'date_option']
+                    request.session['last_search_params'] = {k: context[k] for k in save_keys if k in context}
+                    request.session['last_search_results'] = context['results']
+                    # select_video 用
+                    request.session['search_results'] = context['results']
+                else:
+                    # 未ログインユーザーの場合はセッションをクリア（念のため）
+                    request.session.pop('last_search_params', None)
+                    request.session.pop('last_search_results', None)
+                    # select_video 用に一時的なリストだけは保持（これがないと再生できないため）
+                    request.session['search_results'] = context['results']
 
             context['selected_video_id'] = context.get('selected_video_id') or (context['results'][0]['video_id'] if context['results'] else '')
 

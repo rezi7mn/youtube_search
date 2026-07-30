@@ -2,4 +2,5 @@ secret.json
 app.py
 generate_er_diagram.py
 *.pyc
+*.sqlite3
 __pycache__/

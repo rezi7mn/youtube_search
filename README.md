@@ -5,7 +5,7 @@
 ## 概要
 Youtube動画詳細検索アプリです。
 動画・ライブ配信に対応しています。
-- **App URL**: https://rezi7mn.pythonanywhere.com/
+- **App URL**: https://rezi7mn.pythonanywhere.com/login/
 - **テスト用アカウント**:
   - メールアドレス: `test1@mail.com` / Pass: `abcd1111`
 

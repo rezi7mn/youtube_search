@@ -151,7 +151,7 @@ def get_iso_date(days_ago: int) -> str:
 def get_query_parameters(request: HttpRequest) -> dict:
     return {
         'target': request.GET.get('target', 'video'),
-        'query': request.GET.get('query', 'Python 自動化'),
+        'query': request.GET.get('query', ''),
         # 'max_results': int(request.GET.get('max_results', 50) or 50),
         'order': request.GET.get('order', 'viewCount'),
         'lower_threshold': int(request.GET.get('lower_threshold', 100000) or 100000),

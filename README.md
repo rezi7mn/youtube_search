@@ -9,7 +9,7 @@ Youtube動画詳細検索アプリです。
 - **テスト用アカウント**:
   - メールアドレス: `test1@mail.com` / Pass: `abcd1111`
 
----
+<br />
 
 ## 開発背景
 普段日常的に利用しているYouTube公式の検索機能において、「動画の詳細な絞り込みがしづらい」<br />
@@ -32,7 +32,7 @@ Youtube動画詳細検索アプリです。
 
   * ユーザー目線に立った直感的なUI/UXの設計
 
----
+<br />
 
 ## 主な機能一覧
 * **ログイン機能**: メールアドレスとパスワードでの認証機能とGoogle OAuth 2.0 による外部認証を実装しました。
@@ -43,26 +43,26 @@ Youtube動画詳細検索アプリです。
 * **お気に入りリスト**: 動画・ライブを好きなリストに保存可能。
 * **おすすめ動画機能**: パーソナライズされたおすすめ動画を提示します。
 
----
+<br />
 
 ## 使用技術 (Tech Stack)
 
 | カテゴリ | 技術スタック |
 | :--- | :--- |
-| **フロントエンド** | HTML5 / CSS3 / JavaScript (ES6+) |
-| **バックエンド** | Python 3.11 / Django 4.2 |
-| **データベース** | PostgreSQL / Redis |
-| **インフラ / 構成** | AWS (EC2, S3, RDS) / Docker / Nginx |
-| **CI/CD・ツール** | GitHub Actions / Docker Compose |
+| **フロントエンド** | HTML5 / CSS3 / JavaScript (Vanilla JS) / HTMX |
+| **バックエンド** | Python 3.13 / Django 6.0 |
+| **データベース** | SQLite3 |
+| **プラットフォーム** | PythonAnywhere |
+| **その他** | Git / GitHub |
 
----
+<br />
 
 ## 設計図 (ER図 / インフラ構成図)
 
 ### ER図
 ![ER図の画像](Youtube_search_django/image/er_diagram.png)
 
----
+<br />
 
 ## 開発で工夫したこと・技術的こだわり
 * **1. 〇〇処理のパフォーマンス改善**

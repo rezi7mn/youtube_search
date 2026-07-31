@@ -199,7 +199,7 @@ def extract_items_from_search(response):
 # ============================================================================
 # API レスポンス キャッシング
 # ============================================================================
-def cached_api_call(cache_key, loader, timeout=1200):
+def cached_api_call(cache_key, loader, timeout=3600):
     safe_key = hashlib.md5(cache_key.encode('utf-8')).hexdigest()
     cached = cache.get(safe_key)
     if cached is not None:
@@ -222,7 +222,7 @@ def collect_subscriber_counts(youtube, channel_ids):
         id=','.join(channel_ids),
         part='statistics',
         fields='items(id,statistics(subscriberCount))'
-    ).execute().get('items', []), timeout=300)
+    ).execute().get('items', []), timeout=86400)
 
     return {
         item.get('id'): int(item.get('statistics', {}).get('subscriberCount', 0) or 0)
@@ -240,7 +240,7 @@ def collect_video_details(youtube, video_ids):
         id=','.join(video_ids),
         part='snippet,statistics,contentDetails,liveStreamingDetails,status',
         fields='items(id,snippet(title,publishedAt,channelTitle,tags),statistics(viewCount),contentDetails(duration),liveStreamingDetails(concurrentViewers,actualStartTime),status(embeddable))'
-    ).execute().get('items', []), timeout=300)
+    ).execute().get('items', []), timeout=600)
 
 
 # ============================================================================

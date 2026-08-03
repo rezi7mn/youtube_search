@@ -39,7 +39,7 @@ def signup_view(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            for i in range(1, 6):
+            for i in range(1, 7):
                 FavoriteList.objects.create(user=user, index=i, name=f"リスト {i}")
             login(request, user)  # 登録後すぐにログイン
             return redirect('youtube_app:search')
@@ -113,7 +113,7 @@ def google_callback(request):
             password=password
         )
         # 初回ログイン時に、お気に入りリスト5つを自動作成
-        for i in range(1, 6):
+        for i in range(1, 7):
             FavoriteList.objects.get_or_create(user=user, index=i, defaults={'name': f'リスト {i}'})
         messages.info(request, 'Googleアカウントで新規登録しました。')
 
@@ -498,7 +498,7 @@ def recommendations_view(request):
     favorite_lists = FavoriteList.objects.filter(user=request.user).order_by('index')
     # まだリストがない場合は作成（初回アクセス時用）
     if not favorite_lists.exists():
-        for i in range(1, 6):
+        for i in range(1, 7):
             FavoriteList.objects.create(user=request.user, index=i, name=f'リスト {i}')
         favorite_lists = FavoriteList.objects.filter(user=request.user).order_by('index')
     
@@ -636,7 +636,7 @@ def search_view(request):
     # ログイン済みなら、5つのマイリストを確保する
     favorite_lists = []
     if request.user.is_authenticated:
-        for i in range(1, 6):
+        for i in range(1, 7):
             obj, created = FavoriteList.objects.get_or_create(
                 user=request.user, index=i, 
                 defaults={'name': f'リスト {i}'}
@@ -808,7 +808,7 @@ def select_video(request):
 def get_user_favorite_lists(user):
     lists = FavoriteList.objects.filter(user=user)
     if lists.count() < 5:
-        for i in range(1, 6):
+        for i in range(1, 7):
             FavoriteList.objects.get_or_create(
                 user=user, order=i, 
                 defaults={'name': f'リスト {i}'}

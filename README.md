@@ -40,6 +40,68 @@ Youtube詳細検索アプリです。
 | ![お気に入りリスト](Youtube_search_django/image/mz_favorite.png) | ![おすすめ動画機能](Youtube_search_django/image/recom.gif) |
 | 動画・ライブを好きなリストに保存可能。 | パーソナライズされたおすすめ動画を提示します。 |
 
+## 主な機能一覧
+
+<table>
+  <tr>
+    <th width="50%" align="center">ログイン機能</th>
+    <th width="50%" align="center">マルチターゲット検索</th>
+  </tr>
+  <tr>
+    <td><img src="Youtube_search_django/image/login.png" alt="ログイン" width="100%"></td>
+    <td><img src="Youtube_search_django/image/search_target.png" alt="ターゲット画面" width="100%"></td>
+  </tr>
+  <tr>
+    <td>メールアドレスとパスワードでの認証機能とGoogle OAuth 2.0 による外部認証を実装しました。</td>
+    <td>通常の動画とライブ配信を切り替えて検索可能。</td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <th width="50%" align="center">詳細フィルタリング</th>
+    <th width="50%" align="center">人気度</th>
+  </tr>
+  <tr>
+    <td><img src="Youtube_search_django/image/filter.gif" alt="詳細フィルタリング" width="100%"></td>
+    <td><img src="Youtube_search_django/image/mz_sort1.png" alt="人気度" width="100%"></td>
+  </tr>
+  <tr>
+    <td>チャンネル登録者数、動画時間（分単位）等によるフィルタが可能。</td>
+    <td>登録者数と視聴数から人気度を算出し、動画、ライブの盛り上がりを可視化。</td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <th width="50%" align="center">ソート機能</th>
+    <th width="50%" align="center">履歴機能</th>
+  </tr>
+  <tr>
+    <td><img src="Youtube_search_django/image/sort.gif" alt="ソート機能" width="100%"></td>
+    <td><img src="Youtube_search_django/image/mz_history.png" alt="履歴機能" width="100%"></td>
+  </tr>
+  <tr>
+    <td>視聴回数、登録者数、人気度、アップロード日による並び替えが可能。</td>
+    <td>最新100件の検索条件と視聴履歴を保存。ワンクリックでの「再検索」に対応。</td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <th width="50%" align="center">お気に入りリスト</th>
+    <th width="50%" align="center">おすすめ動画機能</th>
+  </tr>
+  <tr>
+    <td><img src="Youtube_search_django/image/mz_favorite.png" alt="お気に入りリスト" width="100%"></td>
+    <td><img src="Youtube_search_django/image/recom.gif" alt="おすすめ動画機能" width="100%"></td>
+  </tr>
+  <tr>
+    <td>動画・ライブを好きなリストに保存可能。</td>
+    <td>パーソナライズされたおすすめ動画を提示します。</td>
+  </tr>
+</table>
+
 <br />
 
 ## 使用技術

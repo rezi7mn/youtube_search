@@ -22,7 +22,7 @@ Youtube詳細検索アプリです。
 ## 主な機能一覧
 | ログイン機能 | マルチターゲット検索 |
 | ---- | ---- |
-| ![ログイン](Youtube_search_django/image/login.png) | ![ターゲット画面](Youtube_search_django/image/search_target.png) |
+| ![ログイン](Youtube_search_django/image/1000login.png) | ![ターゲット画面](Youtube_search_django/image/resize_search_target.png) |
 | メールアドレスとパスワードでの認証機能とGoogle OAuth 2.0 による外部認証を実装しました。 | 通常の動画とライブ配信を切り替えて検索可能。 |
 
 | 詳細フィルタリング | 人気度 |
@@ -48,8 +48,8 @@ Youtube詳細検索アプリです。
     <th width="50%" align="center">マルチターゲット検索</th>
   </tr>
   <tr>
-    <td><img src="Youtube_search_django/image/login.png" alt="ログイン" width="100%"></td>
-    <td><img src="Youtube_search_django/image/search_target.png" alt="ターゲット画面" width="100%"></td>
+    <td><img src="Youtube_search_django/image/1000login.png" alt="ログイン" width="100%"></td>
+    <td><img src="Youtube_search_django/image/resize_search_target.png" alt="ターゲット画面" width="100%"></td>
   </tr>
   <tr>
     <td>メールアドレスとパスワードでの認証機能とGoogle OAuth 2.0 による外部認証を実装しました。</td>

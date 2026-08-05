@@ -27,7 +27,7 @@ Youtube詳細検索アプリです。
 
 | 詳細フィルタリング | 人気度 |
 | ---- | ---- |
-| ![詳細フィルタリング](Youtube_search_django/image/filter.gif) | ![人気度](Youtube_search_django/image/mz_sort1.png) |
+| ![詳細フィルタリング](Youtube_search_django/image/resize2_filter.gif) | ![人気度](Youtube_search_django/image/mz_sort1.png) |
 | チャンネル登録者数、動画時間（分単位）等によるフィルタが可能。 | 登録者数と視聴数から人気度を算出し、動画、ライブの盛り上がりを可視化。 |
 
 | ソート機能 | 履歴機能 |
@@ -63,7 +63,7 @@ Youtube詳細検索アプリです。
     <th width="50%" align="center">人気度</th>
   </tr>
   <tr>
-    <td><img src="Youtube_search_django/image/filter.gif" alt="詳細フィルタリング" width="100%"></td>
+    <td><img src="Youtube_search_django/image/resize2_filter.gif" alt="詳細フィルタリング" width="100%"></td>
     <td><img src="Youtube_search_django/image/mz_sort1.png" alt="人気度" width="100%"></td>
   </tr>
   <tr>

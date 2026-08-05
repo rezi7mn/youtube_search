@@ -32,7 +32,7 @@ Youtube詳細検索アプリです。
 
 | ソート機能 | 履歴機能 |
 | ---- | ---- |
-| ![ソート機能](Youtube_search_django/image/sort.gif) | ![履歴機能](Youtube_search_django/image/mz_history.png) |
+| ![ソート機能](Youtube_search_django/image/resize_sort.gif) | ![履歴機能](Youtube_search_django/image/mz_history.png) |
 | 視聴回数、登録者数、人気度、アップロード日による並び替えが可能。 | 最新100件の検索条件と視聴履歴を保存。ワンクリックでの「再検索」に対応。 |
 
 | お気に入りリスト | おすすめ動画機能 |
@@ -78,7 +78,7 @@ Youtube詳細検索アプリです。
     <th width="50%" align="center">履歴機能</th>
   </tr>
   <tr>
-    <td><img src="Youtube_search_django/image/sort.gif" alt="ソート機能" width="100%"></td>
+    <td><img src="Youtube_search_django/image/resize_sort.gif" alt="ソート機能" width="100%"></td>
     <td><img src="Youtube_search_django/image/mz_history.png" alt="履歴機能" width="100%"></td>
   </tr>
   <tr>

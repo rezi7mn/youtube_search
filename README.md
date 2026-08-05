@@ -22,13 +22,13 @@ Youtube詳細検索アプリです。
 ## 主な機能一覧
 | ログイン機能 | マルチターゲット検索 |
 | ---- | ---- |
-| ![ログイン](Youtube_search_django/image/1000login.png) | ![ターゲット画面](Youtube_search_django/image/resize_search_target.jpg) |
-| メールアドレスとパスワードでの認証機能とGoogle OAuth 2.0 による外部認証を実装しました。 | 通常の動画とライブ配信を切り替えて検索可能。 |
+| ![ログイン](Youtube_search_django/image/1000login.png) | ![ターゲット画面](Youtube_search_django/image/target.gif) |
+| メールアドレスとパスワードでの認証機能と、Google OAuth 2.0 による外部認証を実装しました。 | 通常の動画とライブ配信を切り替えて検索可能。 |
 
 | 詳細フィルタリング | 人気度 |
 | ---- | ---- |
 | ![詳細フィルタリング](Youtube_search_django/image/resize2_filter.gif) | ![人気度](Youtube_search_django/image/mz_sort1.png) |
-| チャンネル登録者数、動画時間（分単位）等によるフィルタが可能。 | 登録者数と視聴数から人気度を算出し、動画、ライブの盛り上がりを可視化。 |
+| チャンネル登録者数、動画時間（分単位）等によるフィルタが可能。 | 登録者数と視聴数から人気度を算出し、動画・ライブの盛り上がりを可視化。 |
 
 | ソート機能 | 履歴機能 |
 | ---- | ---- |
@@ -38,7 +38,7 @@ Youtube詳細検索アプリです。
 | お気に入りリスト | おすすめ動画機能 |
 | ---- | ---- |
 | ![お気に入りリスト](Youtube_search_django/image/mz_favorite.png) | ![おすすめ動画機能](Youtube_search_django/image/recom.gif) |
-| 動画・ライブを好きなリストに保存可能。 | パーソナライズされたおすすめ動画を提示します。 |
+| 動画・ライブを好きなリストに保存可能。リストから再生も行えます。 | パーソナライズされたおすすめ動画を提示します。 |
 
 <br />
 

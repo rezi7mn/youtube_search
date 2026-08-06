@@ -707,7 +707,8 @@ def search_view(request):
 
             context['selected_video_id'] = context.get('selected_video_id') or (context['results'][0]['video_id'] if context['results'] else '')
             context['is_live'] = (context['target'] == 'live')
-
+            context['embed_domain'] = request.get_host().split(':')[0]
+            
             # 新規検索時（セッション復元でない時）のみ履歴 DB に保存
             if request.GET and 'query' in request.GET and 'select' not in request.GET:
                 if request.user.is_authenticated:

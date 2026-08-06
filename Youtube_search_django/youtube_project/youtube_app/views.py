@@ -575,6 +575,10 @@ def build_query_string_without_select(request):
     params = request.GET.copy()
     params.pop('select', None)
     return params.urlencode()
+
+def get_clean_domain(request):
+    """ポート番号を除いた純粋なホスト名（ドメイン）を返す"""
+    return request.get_host().split(':')[0]
 # ============================================================================
 # メインビュー：検索フォーム表示・検索実行・結果表示
 # ============================================================================
@@ -707,8 +711,8 @@ def search_view(request):
 
             context['selected_video_id'] = context.get('selected_video_id') or (context['results'][0]['video_id'] if context['results'] else '')
             context['is_live'] = (context['target'] == 'live')
-            context['embed_domain'] = request.get_host().split(':')[0]
-            
+            context['embed_domain'] = get_clean_domain(request)
+
             # 新規検索時（セッション復元でない時）のみ履歴 DB に保存
             if request.GET and 'query' in request.GET and 'select' not in request.GET:
                 if request.user.is_authenticated:
@@ -776,7 +780,7 @@ def select_video(request):
     # チャット表示用のliveフラグ
     is_live = (target == 'live')
     # ポート番号（:8000 等）を除いた純粋なホスト名を取得
-    domain = request.get_host().split(':')[0]
+    domain = get_clean_domain(request)
 
     context = {
         'selected_video_id': video_id,

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{% static 'youtube_app/style.css' %}">
 </head>
 <body>
-    <div class="page-shell">
+    <div class="page-shell history-page">
         <header class="app-header">
             <div>
                 <h1>🕒 履歴一覧</h1>
@@ -110,7 +110,7 @@
                                             {% endif %}
                                             <!-- HTMX を使用して再生するように変更 -->
                                             <button
-                                               hx-get="{% url 'youtube_app:select_video' %}?video_id={{ item.video_id }}"
+                                               hx-get="{% url 'youtube_app:select_video' %}?video_id={{ item.video_id }}&target={{ item.video_type }}"
                                                hx-target="#history-player"
                                                hx-swap="innerHTML"
                                                class="open-button" style="font-size: 0.8em; padding: 4px 8px; cursor: pointer; border: none;">再生</button>

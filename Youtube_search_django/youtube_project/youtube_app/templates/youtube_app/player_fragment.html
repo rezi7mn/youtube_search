@@ -12,6 +12,19 @@
         <!-- 1. 動画プレイヤー本体 -->
         <div class="player-wrapper" style="flex: 2; min-width: 300px;">
             <div id="yt-player-{{ selected_video_id }}" style="width:100%; height:360px; background:#000;"></div>
+            
+            <!-- 履歴画面などに表示されるシンプルなチャットリンク -->
+            {% if is_live %}
+            <div class="chat-link-simple" style="margin-top: 10px;">
+                <a href="https://www.youtube.com/live_chat?v={{ selected_video_id }}&is_popout=1" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   onclick="window.open(this.href, 'chatWindow', 'width=400,height=600'); return false;"
+                   style="color: #ff4e4e; font-size: 0.9em; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                    💬 別窓でライブチャットを開く ↗
+                </a>
+            </div>
+            {% endif %}
         </div>
 
         <!-- 2. ライブ配信の場合のみ表示するライブチャット iframe -->

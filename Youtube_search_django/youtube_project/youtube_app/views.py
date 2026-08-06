@@ -689,6 +689,9 @@ def search_view(request):
                         max_dur=0,
                         is_live=True,
                     )
+                # 全検索結果要素に target ('video' または 'live') を明示的に追加
+                for res in context['results']:
+                    res['target'] = context['target']
 
                 # --- セッションへの保存 (シリアライズ可能なデータのみ) ---
                 # context全体ではなく、入力パラメータのみを抽出して保存
@@ -773,13 +776,8 @@ def select_video(request):
 
     target = request.GET.get('target', 'video')
     # チャット表示用のliveフラグ
-    is_live = (target == 'live')
-
-    context = {
-        'selected_video_id': video_id,
-        'is_live': is_live,
-    }
-
+    is_live = (request.GET.get('target') == 'live')
+    
     # セッション（検索結果）から動画データを取得
     search_results = request.session.get('search_results', [])
     video_data = next((item for item in search_results if item['video_id'] == video_id), None)
@@ -791,26 +789,78 @@ def select_video(request):
         recommendations = cache.get(cache_key, [])
         video_data = next((item for item in recommendations if item['video_id'] == video_id), None)
 
-    if video_data:
-        # ログインユーザーの視聴履歴を整理
-        if request.user.is_authenticated:
-            history_ids = WatchHistory.objects.filter(user=request.user).values_list('id', flat=True)[:99]
-            WatchHistory.objects.filter(user=request.user).exclude(id__in=list(history_ids)).delete()
+    # DBから履歴とお気に入りを取得（判定およびフォールバック用）
+    history_item = None
+    fav_item = None
+    if request.user.is_authenticated:
+        history_item = WatchHistory.objects.filter(user=request.user, video_id=video_id).first()
+        fav_item = FavoriteVideo.objects.filter(favorite_list__user=request.user, video_id=video_id).first()
 
-            # ユーザーごとに保存・更新
-            WatchHistory.objects.update_or_create(
-                user=request.user, # ユーザーを指定
-                video_id=video_id,
-                defaults={
-                    'title': video_data.get('title', 'タイトルなし'),
-                    'thumbnail_url': video_data.get('thumbnail_url', ''),
-                    'channel_title': video_data.get('channel_title', '不明'),
-                    'tags': video_data.get('tags', []),
-                    'view_count': video_data.get('view_count', 0),
-                    'subscriber_count': video_data.get('subscriber_count', 0),
-                    'video_type': video_data.get('target', 'video'),
-                }
-            )
+    # --- is_live の多重判定ロジック ---
+    if not is_live:
+        # 1. 検索/おすすめデータの target フィールドを判定
+        if video_data and video_data.get('target') == 'live':
+            is_live = True
+        # 2. 視聴履歴の video_type を判定
+        elif history_item and history_item.video_type == 'live':
+            is_live = True
+        # 3. お気に入りの video_type を判定
+        elif fav_item and fav_item.video_type == 'live':
+            is_live = True
+
+    
+    # --- 視聴履歴の記録 / 更新 ---
+    if request.user.is_authenticated:
+        title = 'タイトルなし'
+        thumbnail_url = ''
+        channel_title = '不明'
+        tags = []
+        view_count = 0
+        subscriber_count = 0
+
+        if video_data:
+            title = video_data.get('title', title)
+            thumbnail_url = video_data.get('thumbnail_url', thumbnail_url)
+            channel_title = video_data.get('channel_title', channel_title)
+            tags = video_data.get('tags', tags)
+            view_count = video_data.get('view_count', view_count)
+            subscriber_count = video_data.get('subscriber_count', subscriber_count)
+        elif history_item:
+            title = history_item.title
+            thumbnail_url = history_item.thumbnail_url
+            channel_title = history_item.channel_title
+            tags = history_item.tags
+            view_count = history_item.view_count
+            subscriber_count = history_item.subscriber_count
+        elif fav_item:
+            title = fav_item.title
+            thumbnail_url = fav_item.thumbnail_url
+            channel_title = fav_item.channel_title
+            view_count = fav_item.view_count
+
+        # 古い履歴の削除（100件制限）
+        history_ids = WatchHistory.objects.filter(user=request.user).values_list('id', flat=True)[:99]
+        WatchHistory.objects.filter(user=request.user).exclude(id__in=list(history_ids)).delete()
+
+        # 確定した is_live 情報をもとに DB 更新
+        WatchHistory.objects.update_or_create(
+            user=request.user,
+            video_id=video_id,
+            defaults={
+                'title': title,
+                'thumbnail_url': thumbnail_url,
+                'channel_title': channel_title,
+                'tags': tags,
+                'view_count': view_count,
+                'subscriber_count': subscriber_count,
+                'video_type': 'live' if is_live else 'video',
+            }
+        )
+
+    context = {
+        'selected_video_id': video_id,
+        'is_live': is_live,
+    }
     return render(request, 'youtube_app/player_fragment.html', context)
 
 

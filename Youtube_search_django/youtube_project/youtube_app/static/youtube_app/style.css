@@ -286,3 +286,37 @@ body {
     justify-content: flex-start;
   }
 }
+/* ==========================================
+   埋め込みプレイヤー & ライブチャット切り替え用スタイル
+   ========================================== */
+
+/* 画面幅が 1200px 以下の場合、チャットを隠してリンク表示に切り替える */
+@media (max-width: 1200px) {
+  .chat-wrapper {
+    display: none !important;
+  }
+
+  .chat-link-simple {
+    display: block !important;
+  }
+}
+
+/* 画面幅が 1201px 以上の場合 */
+@media (min-width: 1201px) {
+  .chat-wrapper {
+    display: flex !important;
+  }
+
+  .chat-link-simple {
+    display: none !important;
+  }
+}
+
+/* 画面幅に関わらず、履歴ページでは右側のチャット枠を非表示にし、下部のリンクを表示する */
+.history-page .chat-wrapper {
+  display: none !important;
+}
+
+.history-page .chat-link-simple {
+  display: block !important;
+}

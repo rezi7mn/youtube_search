@@ -16,14 +16,19 @@
 
         <!-- 2. ライブ配信の場合のみ表示するライブチャット iframe -->
         {% if is_live %}
-        <div class="chat-wrapper" style="flex: 1; min-width: 280px; height: 360px;">
-            <iframe 
-                src="https://www.youtube.com/live_chat?v={{ selected_video_id }}&embed_domain={{ embed_domain }}&parent={{ embed_domain }}" 
-                width="100%" 
-                height="100%" 
-                frameborder="0"
-                style="border-radius: 4px;">
-            </iframe>
+        <div class="chat-wrapper" style="flex: 1; min-width: 280px; height: 360px; background: #1f1f1f; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 16px; border: 1px solid #333;">
+            <p style="color: #ccc; font-size: 0.9em; margin-bottom: 12px;">ライブチャットを表示</p>
+            <a href="https://www.youtube.com/live_chat?v={{ selected_video_id }}&is_popout=1" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            onclick="window.open(this.href, 'chatWindow', 'width=400,height=600'); return false;"
+            class="select-button" 
+            style="background: #cc0000; color: white; padding: 10px 16px; border-radius: 4px; text-decoration: none; font-weight: bold;">
+                💬 別窓でチャットを開く
+            </a>
+            <small style="color: #777; margin-top: 10px; font-size: 0.75em;">
+                ※ YouTubeのセキュリティ制限のため別ウィンドウで起動します
+            </small>
         </div>
         {% endif %}
     </div>

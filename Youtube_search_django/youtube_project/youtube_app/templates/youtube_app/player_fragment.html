@@ -6,8 +6,27 @@
     <!-- 動画ID表示 -->
     <div class="video-id-label" style="margin-bottom:8px; font-size:0.95em; color:#ddd;">動画ID: {{ selected_video_id }}</div>
     
-    <!-- プレイヤーコンテナ（YouTube IFrame Player API がここに初期化） -->
-    <div id="yt-player-{{ selected_video_id }}" style="width:100%; height:360px; background:#000;"></div>
+    <!-- プレイヤーとチャットのコンテナ（横並びレイアウト） -->
+    <div class="media-container" style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px;">
+        
+        <!-- 1. 動画プレイヤー本体 -->
+        <div class="player-wrapper" style="flex: 2; min-width: 300px;">
+            <div id="yt-player-{{ selected_video_id }}" style="width:100%; height:360px; background:#000;"></div>
+        </div>
+
+        <!-- 2. ライブ配信の場合のみ表示するライブチャット iframe -->
+        {% if is_live %}
+        <div class="chat-wrapper" style="flex: 1; min-width: 280px; height: 360px;">
+            <iframe 
+                src="https://www.youtube.com/live_chat?v={{ selected_video_id }}&embed_domain={{ embed_domain }}" 
+                width="100%" 
+                height="100%" 
+                frameborder="0"
+                style="border-radius: 4px;">
+            </iframe>
+        </div>
+        {% endif %}
+    </div>
     
     <!-- ================================================================ -->
     <!-- YouTube IFrame Player API スクリプト -->

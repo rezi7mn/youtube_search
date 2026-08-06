@@ -143,7 +143,7 @@
             <section class="panel results-panel">
                 <div class="panel-card">
                     <!-- HTMX で埋め込みプレイヤーを挿入するターゲットコンテナ -->
-                    <div id="embedded-player"></div>
+                    <div id="embedded-player" style="margin-bottom: 20px;"></div>
                     
                     <!-- Django メッセージの表示 -->
                     {% if messages %}
@@ -202,8 +202,8 @@
                                             <td>{{ row.display_time }}</td>
                                             <td class="actions-cell">
                                                 {% if row.embeddable %}
-                                                    <a href="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}"
-                                                       hx-get="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}"
+                                                    <a href="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}&target={{ target }}"
+                                                       hx-get="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}&target={{ target }}"
                                                        hx-target="#embedded-player"
                                                        hx-swap="innerHTML"
                                                        class="select-button">選択</a>

@@ -706,6 +706,7 @@ def search_view(request):
                     request.session['search_results'] = context['results']
 
             context['selected_video_id'] = context.get('selected_video_id') or (context['results'][0]['video_id'] if context['results'] else '')
+            context['is_live'] = (context['target'] == 'live')
 
             # 新規検索時（セッション復元でない時）のみ履歴 DB に保存
             if request.GET and 'query' in request.GET and 'select' not in request.GET:
@@ -770,6 +771,18 @@ def select_video(request):
     if not video_id:
         return render(request, 'youtube_app/player_fragment.html', {'selected_video_id': ''})
 
+    target = request.GET.get('target', 'video')
+    # チャット表示用のliveフラグ
+    is_live = (target == 'live')
+    # ポート番号（:8000 等）を除いた純粋なホスト名を取得
+    domain = request.get_host().split(':')[0]
+
+    context = {
+        'selected_video_id': video_id,
+        'is_live': is_live,
+        'embed_domain': domain,
+    }
+
     # セッション（検索結果）から動画データを取得
     search_results = request.session.get('search_results', [])
     video_data = next((item for item in search_results if item['video_id'] == video_id), None)
@@ -801,7 +814,7 @@ def select_video(request):
                     'video_type': video_data.get('target', 'video'),
                 }
             )
-    return render(request, 'youtube_app/player_fragment.html', {'selected_video_id': video_id})
+    return render(request, 'youtube_app/player_fragment.html', context)
 
 
 # --- ヘルパー関数: ユーザーの5つのリストを確保する ---

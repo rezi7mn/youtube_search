@@ -178,3 +178,5 @@ DEFAULT_FROM_EMAIL = 'YouTube検索アプリ <rin1510133@gmail.com>'
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 PASSWORD_RESET_TIMEOUT = 600
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -747,9 +747,77 @@ def search_view(request):
 # ============================================================================
 @login_required
 def history_view(request):
+    # POSTリクエスト（履歴画面からの「お気に入り保存」）の処理
+    if request.method == 'POST' and request.POST.get('add_favorite'):
+        video_id = request.POST.get('video_id')
+        list_id = request.POST.get('list_id')
+
+        # HTMXリクエストの場合はメッセージテキストを直接返却する
+        if not list_id:
+            return HttpResponse('<span style="color: #ff6b6b; font-size: 0.85em; margin-top: 4px; display: block;">リストを選択してください</span>')
+        
+        # 視聴履歴(WatchHistory) から動画データを検索
+        watch_item = WatchHistory.objects.filter(user=request.user, video_id=video_id).first()
+        
+        title = 'タイトルなし'
+        thumbnail_url = ''
+        channel_title = '不明'
+        view_count = 0
+        video_type = 'video'
+
+        if watch_item:
+            title = watch_item.title
+            thumbnail_url = watch_item.thumbnail_url
+            channel_title = watch_item.channel_title
+            view_count = watch_item.view_count
+            video_type = watch_item.video_type
+        else:
+            # 2. セッション(検索結果) から探索
+            all_results = request.session.get('last_search_results', [])
+            video_data = next((item for item in all_results if item['video_id'] == video_id), None)
+            if video_data:
+                title = video_data.get('title', title)
+                thumbnail_url = video_data.get('thumbnail_url', thumbnail_url)
+                channel_title = video_data.get('channel_title', channel_title)
+                view_count = video_data.get('view_count', 0)
+                video_type = video_data.get('target', 'video')
+
+        try:
+            fav_list = FavoriteList.objects.get(id=list_id, user=request.user)
+            obj, created = FavoriteVideo.objects.get_or_create(
+                favorite_list=fav_list,
+                video_id=video_id,
+                defaults={
+                    'title': title,
+                    'thumbnail_url': thumbnail_url,
+                    'channel_title': channel_title,
+                    'view_count': view_count,
+                    'video_type': video_type,
+                }
+            )
+            if created:
+                msg = f'<span style="color: #4ade80; font-size: 0.85em; margin-top: 4px; display: block;">「{fav_list.name}」に保存しました</span>'
+            else:
+                msg = '<span style="color: #fbbf24; font-size: 0.85em; margin-top: 4px; display: block;">既に保存されています</span>'
+            return HttpResponse(msg)
+        
+        except FavoriteList.DoesNotExist:
+            messages.error(request, "選択されたリストが見つかりません。")
+        except Exception as e:
+            messages.error(request, f"エラーが発生しました: {str(e)}")
+
+        return redirect('youtube_app:history')
+    
     """ログインユーザーの履歴のみを一覧表示する。"""
     search_list = SearchHistory.objects.filter(user=request.user)
     watch_list = WatchHistory.objects.filter(user=request.user)
+
+    # ログインユーザーのお気に入りリストの取得（無ければ初期化作成）
+    favorite_lists = FavoriteList.objects.filter(user=request.user).order_by('index')
+    if not favorite_lists.exists():
+        for i in range(1, 7):
+            FavoriteList.objects.get_or_create(user=request.user, index=i, defaults={'name': f'リスト {i}'})
+        favorite_lists = FavoriteList.objects.filter(user=request.user).order_by('index')
 
     # ページネーション設定
     search_page_num = request.GET.get('s_page', 1)
@@ -761,6 +829,7 @@ def history_view(request):
     context = {
         'search_history': search_paginator.get_page(search_page_num),
         'watch_history': watch_paginator.get_page(watch_page_num),
+        'favorite_lists': favorite_lists,
     }
     return render(request, 'youtube_app/history.html', context)
 

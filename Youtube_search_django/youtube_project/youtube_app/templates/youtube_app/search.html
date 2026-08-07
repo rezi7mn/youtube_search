@@ -61,8 +61,10 @@
                         <div class="field-group">
                             <label>検索対象</label>
                             <select id="target" name="target">
-                                <option value="video" {% if target == 'video' %}selected{% endif %}>動画</option>
+                                <option value="video" {% if target == 'video' %}selected{% endif %}>通常動画</option>
+                                <option value="all_video" {% if target == 'all_video' %}selected{% endif %}>動画全般（通常＋アーカイブ）</option>
                                 <option value="live" {% if target == 'live' %}selected{% endif %}>ライブ配信</option>
+                                <option value="archive" {% if target == 'archive' %}selected{% endif %}>配信アーカイブ</option>
                             </select>
                         </div>
                         <div class="field-group">
@@ -124,7 +126,7 @@
                                         <strong>{{ history.query }}</strong> · {{ history.target|title }} · {{ history.results_count }} 件<br>
                                         <small style="color: #94a3b8;">
                                             登録者: {{ history.lower_threshold|intcomma }}〜{{ history.upper_threshold|intcomma }}
-                                            {% if history.target == 'video' %}| 時間: {{ history.min_duration }}〜{{ history.max_duration }}分{% endif %}<br>
+                                            {% if history.target != 'live' %}| 時間: {{ history.min_duration }}〜{{ history.max_duration }}分{% endif %}<br>
                                             {{ history.created_at|date:'Y/m/d H:i' }}
                                         </small>
                                     </li>
@@ -137,9 +139,9 @@
                 {% endif %}
             </section>
 
-    <!-- ================================================================== -->
+            <!-- ================================================================== -->
             <!-- メイン：検索結果表示エリア -->
-    <!-- ================================================================== -->
+            <!-- ================================================================== -->
             <section class="panel results-panel">
                 <div class="panel-card">
                     <!-- HTMX で埋め込みプレイヤーを挿入するターゲットコンテナ -->
@@ -176,18 +178,17 @@
                     {% if not results %}
                         <div class="message info">条件に一致する動画が見つかりませんでした。</div>
                     {% else %}
-                        <!-- 検索結果テーブル（HTMX で選択するとプレイヤーが上に挿入） -->
+                        <!-- 検索結果テーブル -->
                         <div class="result-table-wrap">
-
                             <table class="result-table" id="resultsTable">
                                 <thead>
                                     <tr>
                                         <th>サムネイル</th>
                                         <th>タイトル</th>
-                                        <th class="sortable" onclick="sortTable(2)">{% if target == 'live' %}同接数{% else %}視聴回数{% endif %}<span class="sort-icon"></span></th>
+                                        <th class="sortable" onclick="sortTable(2)">{% if is_video_mode %}視聴回数{% else %}同接数{% endif %}<span class="sort-icon"></span></th>
                                         <th class="sortable" onclick="sortTable(3)">登録者数<span class="sort-icon"></span></th>
                                         <th class="sortable" onclick="sortTable(4)">人気度<span class="sort-icon"></span></th>
-                                        <th class="sortable" onclick="sortTable(5)">{% if target == 'live' %}配信経過時間{% else %}アップロード日{% endif %}<span class="sort-icon"></span></th>
+                                        <th class="sortable" onclick="sortTable(5)">{% if is_video_mode %}アップロード日{% else %}配信経過時間{% endif %}<span class="sort-icon"></span></th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -198,7 +199,7 @@
                                             <td class="title-cell">{{ row.title }}</td>
                                             <td>{{ row.view_count|intcomma }}</td>
                                             <td>{{ row.subscriber_count|intcomma }}</td>
-                                            <td>{{ row.buzz_rate }}{% if target == 'live' %}‰{% else %}%{% endif %}</td>
+                                            <td>{{ row.buzz_rate }}{% if row.target == 'live' %}‰{% else %}%{% endif %}</td>
                                             <td>{{ row.display_time }}</td>
                                             <td class="actions-cell">
                                                 {% if row.embeddable %}
@@ -240,7 +241,6 @@
                         </div>
                     {% endif %}
                 </div>
-
             </section>
         </main>
 
@@ -248,17 +248,15 @@
             <p>本アプリは YouTube Data API を利用しています。</p>
         </footer>
     </div>
+
     <!-- ================================================================== -->
     <!-- HTMX ライブラリ と 動的フォーム制御スクリプト -->
     <!-- ================================================================== -->
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
     <script>
         // ================================================================
-
         // テーブルソート機能
         // ================================================================
-
-
         let sortDirections = {};
 
         function sortTable(n) {
@@ -284,9 +282,9 @@
 
                 if (!isNaN(aNum) && !isNaN(bNum)) {
                     return isAsc ? aNum - bNum : bNum - aNum;
-            }
+                }
                 return isAsc ? aCol.localeCompare(bCol) : bCol.localeCompare(aCol);
-        });
+            });
 
             while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
             tbody.append(...sortedRows);
@@ -308,7 +306,8 @@
         const videoFilterFields = document.querySelectorAll('.video-filter');
 
         function updateVideoFilters() {
-            const isVideo = targetSelect.value === 'video';
+            // live 以外の選択肢（video / archive / all_video）はすべて動画フィルタを表示する
+            const isVideo = targetSelect.value !== 'live';
             videoFilterFields.forEach((field) => {
                 field.style.display = isVideo ? 'block' : 'none';
                 const inputs = field.querySelectorAll('input, select');
@@ -325,4 +324,3 @@
     </script>
 </body>
 </html>
-

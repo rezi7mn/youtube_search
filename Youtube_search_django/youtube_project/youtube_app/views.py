@@ -267,7 +267,7 @@ def format_elapsed_time(start_time_str: str) -> str:
 # ============================================================================
 # YouTube 検索 API 呼び出し
 # ============================================================================
-def search_videos(youtube, q: str, max_results: int, order: str, published_after: str):
+def search_videos(youtube, q: str, max_results: int, order: str, published_after: str, event_type: str = None):
     # キャッシュキーに user_id を含める
     cache_key = f'yt_search_video::{q}::{max_results}::{order}::{published_after or "none"}'
 
@@ -281,6 +281,8 @@ def search_videos(youtube, q: str, max_results: int, order: str, published_after
         }
         if published_after:
             params['publishedAfter'] = published_after
+        if event_type:
+            params['eventType'] = event_type
         return youtube.search().list(**params).execute()
 
     response = cached_api_call(cache_key, loader, timeout=300)
@@ -339,11 +341,15 @@ def build_search_results(youtube, raw_items, threshold, min_dur, max_dur, is_liv
         statistics = detail.get('statistics', {})
         content_details = detail.get('contentDetails', {})
         live_details = detail.get('liveStreamingDetails', {})
+        live_broadcast_content = snippet.get('liveBroadcastContent', 'none')
 
-        if is_live:
+        item_is_live = is_live or (live_broadcast_content == 'live')
+
+        if item_is_live:
             view_count = int(live_details.get('concurrentViewers', 0) or 0)
             display_time = format_elapsed_time(live_details.get('actualStartTime'))
             buzz_rate = round((view_count / item['subscriber_count'] * 1000) if item['subscriber_count'] else 0, 2)
+            item_target = 'live'
         else:
             duration_seconds = parse_duration_seconds(content_details.get('duration'))
             if duration_seconds < min_dur * 60 or duration_seconds > max_dur * 60:
@@ -351,6 +357,12 @@ def build_search_results(youtube, raw_items, threshold, min_dur, max_dur, is_liv
             view_count = int(statistics.get('viewCount', 0) or 0)
             display_time = snippet.get('publishedAt', '').split('T')[0].replace('-', '/') if snippet.get('publishedAt') else _('不明')
             buzz_rate = round((view_count / item['subscriber_count'] * 100) if item['subscriber_count'] else 0, 2)
+
+            # アーカイブかどうかの判定
+            if live_broadcast_content == 'completed':
+                item_target = 'archive'
+            else:
+                item_target = 'video'
 
         results.append({
             'video_id': item['video_id'],
@@ -365,6 +377,7 @@ def build_search_results(youtube, raw_items, threshold, min_dur, max_dur, is_liv
             'duration_formatted': content_details.get('duration', ''), # 生のISO8601形式を保持
             'published_at': snippet.get('publishedAt', ''),           # 生の投稿日時を追加
             'embeddable': detail.get('status', {}).get('embeddable', True),
+            'target': item_target,
         })
 
     return results
@@ -629,11 +642,12 @@ def search_view(request):
         context = get_query_parameters(request)
 
     context['base_query_string'] = build_query_string_without_select(request)
-    context['is_video_mode'] = context['target'] == 'video'
+    # target が video / archive / all_video のいずれかの場合に動画モードとみなす
+    context['is_video_mode'] = context['target'] in ['video', 'archive', 'all_video']
     context['results'] = []
     context['error_message'] = ''
 
-    # ログイン済みなら、5つのマイリストを確保する
+    # ログイン済みなら、6つのマイリストを確保する
     favorite_lists = []
     if request.user.is_authenticated:
         for i in range(1, 7):
@@ -657,41 +671,56 @@ def search_view(request):
                 # 新規検索の実行
                 youtube = get_api_client()
                 published_after = build_published_after(context['date_option'])
-                user_id = request.user.id if request.user.is_authenticated else None
-                if context['target'] == 'video':
-                    raw_results = search_videos(
-                        youtube,
-                        q=context['query'],
-                        max_results=50,
-                        order=context['order'],
-                        published_after=published_after,
-                    )
-                    context['results'] = build_search_results(
-                        youtube,
-                        raw_results,
-                        threshold=(context['lower_threshold'], context['upper_threshold']),
-                        min_dur=context['min_duration'],
-                        max_dur=context['max_duration'],
-                        is_live=False,
-                    )
-                else:
+                target = context['target']
+
+                # ★ target に応じた API リクエストパラメータの分岐
+                if target == 'live':
                     raw_results = search_live_streams(
                         youtube,
                         q=context['query'],
                         max_results=50,
                         order=context['order'],
                     )
-                    context['results'] = build_search_results(
+                    is_live_flag = True
+                elif target == 'archive':
+                    raw_results = search_videos(
                         youtube,
-                        raw_results,
-                        threshold=(context['lower_threshold'], context['upper_threshold']),
-                        min_dur=0,
-                        max_dur=0,
-                        is_live=True,
+                        q=context['query'],
+                        max_results=50,
+                        order=context['order'],
+                        published_after=published_after,
+                        event_type='completed'
                     )
-                # 全検索結果要素に target ('video' または 'live') を明示的に追加
-                for res in context['results']:
-                    res['target'] = context['target']
+                    is_live_flag = False
+                elif target == 'all_video':
+                    raw_results = search_videos(
+                        youtube,
+                        q=context['query'],
+                        max_results=50,
+                        order=context['order'],
+                        published_after=published_after,
+                        event_type=None
+                    )
+                    is_live_flag = False
+                else:  # 'video'
+                    raw_results = search_videos(
+                        youtube,
+                        q=context['query'],
+                        max_results=50,
+                        order=context['order'],
+                        published_after=published_after,
+                        event_type=None
+                    )
+                    is_live_flag = False
+                    
+                context['results'] = build_search_results(
+                    youtube,
+                    raw_results,
+                    threshold=(context['lower_threshold'], context['upper_threshold']),
+                    min_dur=context['min_duration'] if not is_live_flag else 0,
+                    max_dur=context['max_duration'] if not is_live_flag else 0,
+                    is_live=is_live_flag,
+                )
 
                 # --- セッションへの保存 (シリアライズ可能なデータのみ) ---
                 # context全体ではなく、入力パラメータのみを抽出して保存

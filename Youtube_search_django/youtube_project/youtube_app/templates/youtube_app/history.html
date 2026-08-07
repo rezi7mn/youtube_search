@@ -42,11 +42,18 @@
                                     <li style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
                                         <div style="font-weight: bold; font-size: 1.1em;">{{ history.query }}</div>
                                         <div style="color: #666; font-size: 0.9em; line-height: 1.6;">
-                                            対象: {{ history.target }} | 
+                                            <!-- 検索対象の日本語変換 -->
+                                            対象: 
+                                            {% if history.target == 'video' %}通常動画
+                                            {% elif history.target == 'archive' %}配信アーカイブ
+                                            {% elif history.target == 'all_video' %}動画全般
+                                            {% elif history.target == 'live' %}ライブ配信
+                                            {% else %}{{ history.target|title }}{% endif %} | 
                                             結果: {{ history.results_count }} 件 | 
                                             {{ history.created_at|date:'Y/m/d H:i' }}<br>
                                             {{ history.get_order_display_text }} | 登録者: {{ history.lower_threshold|intcomma }} 〜 {{ history.upper_threshold|intcomma }}
-                                            {% if history.target == 'video' %}| 時間: {{ history.min_duration }}分 〜 {{ history.max_duration }}分{% endif %}
+                                            <!-- ★ 時間フィルタの表示判定をライブ以外に拡張 -->
+                                            {% if history.target != 'live' %}| 時間: {{ history.min_duration }}分 〜 {{ history.max_duration }}分{% endif %}
                                         </div>
                                         <div style="margin-top: 8px;">
                                             <a href="{% url 'youtube_app:search' %}?query={{ history.query }}&target={{ history.target }}&order={{ history.order }}&lower_threshold={{ history.lower_threshold }}&upper_threshold={{ history.upper_threshold }}&min_duration={{ history.min_duration }}&max_duration={{ history.max_duration }}&date_option={{ history.date_option }}" class="select-button" style="font-size: 0.8em; padding: 4px 8px;">再検索</a>
@@ -98,6 +105,7 @@
                                             <h3 style="margin: 0 0 5px 0; font-size: 1em; line-height: 1.4;">{{ item.title }}</h3>
                                             <div style="color: #666; font-size: 0.85em; margin-bottom: 5px;">
                                                 {{ item.channel_title }} |
+                                                <!-- 動画再生履歴側は archive も all_video も '視聴' 回数になるため既存のままでOK -->
                                                 {% if item.video_type == 'live' %}同接{% else %}視聴{% endif %}: {{ item.view_count|intcomma }} |
                                                 {{ item.watched_at|date:'Y/m/d H:i' }}
                                             </div>
@@ -109,7 +117,6 @@
                                                 </div>
                                             {% endif %}
 
-                                            <!-- ボタン配置エリア -->
                                             <!-- ボタン配置エリア -->
                                             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                                 <!-- HTMX を使用して再生するように変更 -->
@@ -126,7 +133,6 @@
                                                     </button>
                                                     <div class="list-menu" style="display: none; position: absolute; left: 0; top: 100%; background: #222; border: 1px solid #444; border-radius: 4px; z-index: 100; min-width: 120px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
                                                         {% for flist in favorite_lists %}
-                                                        <!-- ★ HTMX属性を追加（hx-post, hx-target, hx-swap） -->
                                                         <form hx-post="{% url 'youtube_app:history' %}"
                                                               hx-target="#fav-message-{{ item.video_id }}"
                                                               hx-swap="innerHTML"
@@ -135,7 +141,6 @@
                                                             <input type="hidden" name="video_id" value="{{ item.video_id }}">
                                                             <input type="hidden" name="list_id" value="{{ flist.id }}">
                                                             <input type="hidden" name="add_favorite" value="1">
-                                                            <!-- ★ クリック時にメニューを閉じる処理を追加 -->
                                                             <button type="submit" 
                                                                     onclick="this.closest('.list-menu').style.display='none';" 
                                                                     style="width: 100%; text-align: left; background: none; border: none; color: #eee; padding: 8px 12px; font-size: 0.8em; cursor: pointer; border-bottom: 1px solid #333;" 
@@ -148,7 +153,6 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- ★「お気に入り保存」ボタンの横にメッセージを表示する領域を追加 -->
                                                 <div id="fav-message-{{ item.video_id }}"></div>
                                             </div>
                                         </div>
@@ -187,10 +191,8 @@
         </footer>
     </div>
 
-    <!-- HTMX ライブラリの追加 -->
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
     <script>
-        // プレイヤー挿入後にプレイヤー位置までスムーズスクロール
         document.body.addEventListener('htmx:afterSwap', function(evt) {
             if (evt.detail.target.id === 'history-player') {
                 evt.detail.target.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -199,4 +201,3 @@
     </script>
 </body>
 </html>
-

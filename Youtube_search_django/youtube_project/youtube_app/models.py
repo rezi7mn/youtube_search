@@ -42,7 +42,7 @@ class WatchHistory(models.Model):
     view_count = models.PositiveBigIntegerField(default=0)
     subscriber_count = models.PositiveBigIntegerField(default=0)
     video_type = models.CharField(max_length=16, default='video')
-    watched_at = models.DateTimeField(auto_now=True) # auto_now に変更（更新時に現在時刻へ自動更新）
+    watched_at = models.DateTimeField(auto_now=True) # 現在時刻へ自動更新
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watch_histories', null=True, blank=True)
 
     class Meta:
@@ -54,10 +54,10 @@ class WatchHistory(models.Model):
 
 
 class FavoriteList(models.Model):
-    """お気に入りリスト（ユーザーごとに5つ）"""
+    """お気に入りリスト（ユーザーごとに6つ）"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorite_lists')
     name = models.CharField(max_length=100)
-    index = models.PositiveSmallIntegerField() # 1〜5の番号
+    index = models.PositiveSmallIntegerField() # 1〜6の番号
 
     class Meta:
         unique_together = ('user', 'index')
@@ -75,8 +75,8 @@ class FavoriteVideo(models.Model):
     thumbnail_url = models.URLField()
     channel_title = models.CharField(max_length=255)
     view_count = models.PositiveBigIntegerField(default=0)
-    video_type = models.CharField(max_length=16) # video or live
-    published_at = models.CharField(max_length=100) # アップロード日
+    video_type = models.CharField(max_length=16) # video, live, archive
+    published_at = models.CharField(max_length=100, blank=True, default='') # アップロード日
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

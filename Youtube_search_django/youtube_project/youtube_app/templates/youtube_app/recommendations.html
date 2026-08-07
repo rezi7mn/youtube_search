@@ -54,15 +54,7 @@
         .list-header-container.editing .display-area { display: none !important; }
         .list-header-container.editing .edit-area { display: flex !important; }
         .list-header-container .edit-area { display: none; }
-        /* 更新時に一瞬光らせるアニメーション */
-        .updated-flash {
-            animation: highlight-blue 1.5s ease-out;
-        }
 
-        @keyframes highlight-blue {
-            0% { background-color: rgba(62, 166, 255, 0.4); border-radius: 4px; }
-            100% { background-color: transparent; }
-        }
         /* 編集モード時に削除ボタンを表示するためのスタイル */
         .panel-card .delete-btn { display: none; }
         .panel-card:has(.list-header-container.editing) .delete-btn { display: inline-block; }
@@ -103,7 +95,7 @@
 
                 <div class="horizontal-scroll">
                     {% for video in results %}
-                                                <div class="recommend-item">
+                        <div class="recommend-item">
                             <div style="position: relative;">
                                 <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}">
                                 {% if video.duration_formatted %}
@@ -118,16 +110,16 @@
                             <p style="color: #aaa; font-size: 0.8em; margin-bottom: 10px;">
                                 {{ video.view_count|format_views }}回視聴・{{ video.published_at|relative_time }}
                             </p>
-                            <!-- HTMX を使用して再生するように変更 -->
+                            <!-- ★ target パラメータを追加 -->
                             <button
-                               hx-get="{% url 'youtube_app:select_video' %}?video_id={{ video.video_id }}"
+                               hx-get="{% url 'youtube_app:select_video' %}?video_id={{ video.video_id }}&target=video"
                                hx-target="#recommendation-player"
                                hx-swap="innerHTML"
                                class="primary-button"
                                style="text-align: center; display: block; width: 100%; font-size: 0.85em; padding: 8px; background-color: #cc0000; border: none; cursor: pointer;">
                                再生
                             </button>
-                </div>
+                        </div>
                     {% endfor %}
                 </div>
             </section>
@@ -165,7 +157,7 @@
                                 <form class="edit-area" style="gap: 5px; align-items: center;"
                                       hx-post="{% url 'youtube_app:recommendations' %}"
                                       hx-target="#list-header-{{ flist.id }} .display-area"
-                                      hx-on::after-request="this.closest('.list-header-container').classList.remove('editing')">
+                                      hx-on="htmx:afterRequest: this.closest('.list-header-container').classList.remove('editing')">
                                     {% csrf_token %}
                                     <input type="hidden" name="update_list_name" value="1">
                                     <input type="hidden" name="list_id" value="{{ flist.id }}">
@@ -181,9 +173,9 @@
                                     <div id="video-item-{{ flist.id }}-{{ video.video_id }}" 
                                          style="display: flex; gap: 10px; margin-bottom: 12px; font-size: 0.85em; align-items: flex-start;">
                                         
-                                        <!-- サムネイルをクリック可能に変更 -->
+                                        <!-- サムネイルをクリック可能に変更 (★ target パラメータ追加) -->
                                         <div style="cursor: pointer; flex-shrink: 0; position: relative;"
-                                             hx-get="{% url 'youtube_app:select_video' %}?video_id={{ video.video_id }}"
+                                             hx-get="{% url 'youtube_app:select_video' %}?video_id={{ video.video_id }}&target=video"
                                              hx-target="#recommendation-player"
                                              hx-swap="innerHTML"
                                              title="再生する">
@@ -200,8 +192,7 @@
                                             </div>
                                             
                                             <div style="display: flex; gap: 10px; align-items: center;">
-                                                
-                                                <!-- 削除ボタン：フォームを使わず直接パラメータを送る構成に変更 -->
+                                                <!-- 削除ボタン -->
                                                 <button 
                                                     class="delete-btn"
                                                     hx-post="{% url 'youtube_app:recommendations' %}"

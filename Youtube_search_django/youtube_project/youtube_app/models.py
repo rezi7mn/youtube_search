@@ -6,7 +6,7 @@ class SearchHistory(models.Model):
     target = models.CharField(max_length=16, default='video')
     query = models.CharField(max_length=255)
     # max_results = models.PositiveSmallIntegerField(default=50) # 検索上限数50で固定
-    order = models.CharField(max_length=32, default='viewCount')
+    order = models.CharField(max_length=32, default='relevance')
     lower_threshold = models.PositiveIntegerField(default=100000)
     upper_threshold = models.PositiveIntegerField(default=500000)
     min_duration = models.PositiveIntegerField(default=0)

@@ -153,7 +153,7 @@ def get_query_parameters(request: HttpRequest) -> dict:
         'target': request.GET.get('target', 'video'),
         'query': request.GET.get('query', ''),
         # 'max_results': int(request.GET.get('max_results', 50) or 50),
-        'order': request.GET.get('order', 'viewCount'),
+        'order': request.GET.get('order', 'relevance'),
         'lower_threshold': int(request.GET.get('lower_threshold', 100000) or 100000),
         'upper_threshold': int(request.GET.get('upper_threshold', 500000) or 500000),
         'min_duration': int(request.GET.get('min_duration', 0) or 0),
@@ -712,7 +712,7 @@ def search_view(request):
                         event_type=None
                     )
                     is_live_flag = False
-                    
+
                 context['results'] = build_search_results(
                     youtube,
                     raw_results,

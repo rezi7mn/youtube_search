@@ -29,8 +29,8 @@ class SearchHistory(models.Model):
                 'rating': '評価が高い順',
                 'relevance': '関連性が高い順',
             }
-            # マッピングになければ「関連度順」をデフォルトにする
-            return mapping.get(self.order, '関連性が高い順')
+            # マッピングになければ「表示回数の多い順」をデフォルトにする
+            return mapping.get(self.order, '表示回数の多い順')
 
 
 class WatchHistory(models.Model):

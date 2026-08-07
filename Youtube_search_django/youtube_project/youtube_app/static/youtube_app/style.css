@@ -291,32 +291,33 @@ body {
    ========================================== */
 
 /* 画面幅が 1200px 以下の場合、チャットを隠してリンク表示に切り替える */
+/* --- 基本設定（デフォルト：チャット枠を表示、下部リンクを非表示） --- */
+.chat-wrapper {
+  display: flex;
+}
+
+.chat-link-simple {
+  display: none;
+}
+
+/* --- 1. 画面幅が 1200px 以下の場合 --- */
 @media (max-width: 1200px) {
   .chat-wrapper {
     display: none !important;
   }
-
   .chat-link-simple {
     display: block !important;
   }
 }
 
-/* 画面幅が 1201px 以上の場合 */
-@media (min-width: 1201px) {
-  .chat-wrapper {
-    display: flex !important;
-  }
-
-  .chat-link-simple {
-    display: none !important;
-  }
-}
-
-/* 画面幅に関わらず、履歴ページでは右側のチャット枠を非表示にし、下部のリンクを表示する */
-.history-page .chat-wrapper {
+/* --- 2. 2カラムのページ（履歴画面・お気に入り画面など） --- */
+/* 幅に関わらず右側枠を隠し、下部リンクのみ表示 */
+.history-page .chat-wrapper,
+.favorite-page .chat-wrapper {
   display: none !important;
 }
 
-.history-page .chat-link-simple {
+.history-page .chat-link-simple,
+.favorite-page .chat-link-simple {
   display: block !important;
 }

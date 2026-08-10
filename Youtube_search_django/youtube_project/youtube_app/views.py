@@ -1,3 +1,4 @@
+import math
 import os
 import random
 import re
@@ -356,7 +357,26 @@ def build_search_results(youtube, raw_items, threshold, min_dur, max_dur, is_liv
                 continue
             view_count = int(statistics.get('viewCount', 0) or 0)
             display_time = snippet.get('publishedAt', '').split('T')[0].replace('-', '/') if snippet.get('publishedAt') else _('不明')
-            buzz_rate = round((view_count / item['subscriber_count'] * 100) if item['subscriber_count'] else 0, 2)
+
+            # --- 時間減衰（逆数モデル）の処理の追加 ---
+            published_at_str = snippet.get('publishedAt')
+            if published_at_str:
+                published_dt = isodate.parse_datetime(published_at_str)
+                now = datetime.now(timezone.utc)
+                # 投稿からの経過日数（0日未満にならないよう下限を設定）
+                days_old = max(0.0, (now - published_dt).total_seconds() / 86400)
+            else:
+                days_old = 0.0
+
+            # 減衰前のベースとなる人気度
+            if item['subscriber_count']:
+                raw_buzz_rate = (view_count / item['subscriber_count']) * 100
+            else:
+                raw_buzz_rate = 0
+
+            alpha = 0.002
+            decay_factor = 1.0 / (1.0 + alpha * days_old)
+            buzz_rate = round(raw_buzz_rate * decay_factor, 2)
 
             # アーカイブかどうかの判定
             if live_broadcast_content == 'completed':

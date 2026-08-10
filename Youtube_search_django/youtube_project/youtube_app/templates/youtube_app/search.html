@@ -1,4 +1,4 @@
-{% load static humanize %}
+{% load static humanize youtube_filters %}
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -194,8 +194,17 @@
                                 </thead>
                                 <tbody>
                                     {% for row in results %}
-                                        <tr class="result-row {% if selected_video_id == row.video_id %}selected{% endif %}">
-                                            <td class="thumbnail-cell"><img src="{{ row.thumbnail_url }}" alt="サムネイル"></td>
+                                                                                <tr class="result-row {% if selected_video_id == row.video_id %}selected{% endif %}">
+                                            <td class="thumbnail-cell">
+                                                <div style="position: relative; display: inline-block;">
+                                                    <img src="{{ row.thumbnail_url }}" alt="サムネイル" style="display: block;">
+                                                    {% if row.duration_formatted %}
+                                                        <span style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.8); color: white; padding: 2px 4px; border-radius: 4px; font-size: 0.75em;">
+                                                            {{ row.duration_formatted|parse_duration }}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
                                             <td class="title-cell">{{ row.title }}</td>
                                             <td>{{ row.view_count|intcomma }}</td>
                                             <td>{{ row.subscriber_count|intcomma }}</td>

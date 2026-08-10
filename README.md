@@ -89,8 +89,9 @@ Youtube詳細検索アプリです。
   を可視化しています。  
   また、古い動画ほどスコアが下がる「時間減衰」の仕組みを導入しました。逆数モデルを採用し、  
   基本的には新しいトレンド動画を優遇しつつも、一定期間経過後は減衰量に大きな差が出ない、
-  という実用的なバランスを実現しました。  
-  ![減衰画像](Youtube_search_django/image/decay_graph.png)
+  という実用的なバランスを実現しました。
+  <br />
+  <img src="Youtube_search_django/image/decay_graph.png" alt="減衰画像" style="max-width: 600px; width: 75%;"> 
 
 <br />
 

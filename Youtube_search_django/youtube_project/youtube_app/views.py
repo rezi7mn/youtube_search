@@ -290,7 +290,7 @@ def search_videos(youtube, q: str, max_results: int, order: str, published_after
             params['eventType'] = event_type
         return youtube.search().list(**params).execute()
 
-    response = cached_api_call(cache_key, loader, timeout=300)
+    response = cached_api_call(cache_key, loader, timeout=3600)
     return extract_items_from_search(response)
 
 

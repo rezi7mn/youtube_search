@@ -110,7 +110,7 @@
                             <p style="color: #aaa; font-size: 0.8em; margin-bottom: 10px;">
                                 {{ video.view_count|format_views }}回視聴・{{ video.published_at|relative_time }}
                             </p>
-                            <!-- ★ target パラメータを追加 -->
+                            <!-- target パラメータを追加 -->
                             <button
                                hx-get="{% url 'youtube_app:select_video' %}?video_id={{ video.video_id }}&target=video"
                                hx-target="#recommendation-player"
@@ -173,7 +173,7 @@
                                     <div id="video-item-{{ flist.id }}-{{ video.video_id }}" 
                                          style="display: flex; gap: 10px; margin-bottom: 12px; font-size: 0.85em; align-items: flex-start;">
                                         
-                                        <!-- サムネイルをクリック可能に変更 (★ target パラメータ追加) -->
+                                        <!-- サムネイルをクリック可能 (target パラメータ追加) -->
                                         <div style="cursor: pointer; flex-shrink: 0; position: relative;"
                                              hx-get="{% url 'youtube_app:select_video' %}?video_id={{ video.video_id }}&target=video"
                                              hx-target="#recommendation-player"

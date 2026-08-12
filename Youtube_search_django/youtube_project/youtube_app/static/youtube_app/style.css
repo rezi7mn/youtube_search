@@ -300,7 +300,7 @@ body {
   display: none;
 }
 
-/* --- 1. 画面幅が 1200px 以下の場合 --- */
+/* --- 画面幅が 1200px 以下の場合 --- */
 @media (max-width: 1200px) {
   .chat-wrapper {
     display: none !important;
@@ -310,7 +310,7 @@ body {
   }
 }
 
-/* --- 2. 2カラムのページ（履歴画面・お気に入り画面など） --- */
+/* --- 2カラムのページ（履歴画面・お気に入り画面など） --- */
 /* 幅に関わらず右側枠を隠し、下部リンクのみ表示 */
 .history-page .chat-wrapper,
 .favorite-page .chat-wrapper {

@@ -3,7 +3,6 @@ import random
 import hashlib
 from collections import Counter
 from datetime import datetime, timedelta, timezone
-from urllib.parse import urlencode
 
 import isodate
 import requests
@@ -18,7 +17,6 @@ from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 
-from django.urls import reverse
 from django.utils.translation import gettext as _
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -45,6 +43,8 @@ def signup_view(request):
     else:
         form = SignUpForm()
     return render(request, 'youtube_app/signup.html', {'form': form})
+
+
 # ============================================================================
 # ログイン
 # ============================================================================
@@ -53,13 +53,14 @@ class UserLoginView(LoginView):
     template_name = 'youtube_app/login.html'
     authentication_form = EmailAuthenticationForm
 
+
 def google_login(request):
     """ Google認証画面に遷移 """
     oauth_url = 'https://accounts.google.com/o/oauth2/v2/auth'
     params = {
         'client_id': settings.GOOGLE_CLIENT_ID,
         'response_type': 'code', # googleから返してほしいレスポンスの種類
-        'scope': 'email profile', # google垢のどの情報にアクセスしたいのか
+        'scope': 'email profile', # googleアカウントのどの情報にアクセスしたいのか
         'redirect_uri': settings.GOOGLE_REDIRECT_URI,
         'prompt': 'select_account'
     }
@@ -69,12 +70,12 @@ def google_login(request):
     print(auth_url)
     return redirect(auth_url)
 
+
 # 実際の認証処理を行うview
 def google_callback(request):
     """ Googleからのコールバック処理 """
     # 認可コードを取得
     code = request.GET.get('code')
-    # print('code: ', code)
     # アクセストークンの取得
     token_url = 'https://oauth2.googleapis.com/token'
     token_params = {
@@ -94,7 +95,6 @@ def google_callback(request):
     headers = {'Authorization': f'Bearer {access_token}'}
     user_info_response = requests.get(user_info_url, headers=headers)
     user_info = user_info_response.json()
-    # print('user_info: ', user_info)
 
     # ユーザーの取得、作成
     try:
@@ -111,13 +111,14 @@ def google_callback(request):
             email=user_info['email'],
             password=password
         )
-        # 初回ログイン時に、お気に入りリスト5つを自動作成
+        # 初回ログイン時に、お気に入りリスト6つを自動作成
         for i in range(1, 7):
             FavoriteList.objects.get_or_create(user=user, index=i, defaults={'name': f'リスト {i}'})
         messages.info(request, 'Googleアカウントで新規登録しました。')
 
     login(request, user)
     return redirect('youtube_app:search')
+
 
 # ============================================================================
 # ログアウト
@@ -126,6 +127,8 @@ def logout_view(request):
     logout(request)
     messages.info(request, "ログアウトしました。")
     return redirect('youtube_app:login')
+
+
 # ============================================================================
 # YouTube API クライアント初期化
 # ============================================================================
@@ -147,6 +150,9 @@ def get_iso_date(days_ago: int) -> str:
     return target_date.isoformat() + 'Z'
 
 
+# ============================================================================
+# リクエストパラメータ取得
+# ============================================================================
 def get_query_parameters(request: HttpRequest) -> dict:
     return {
         'target': request.GET.get('target', 'video'),
@@ -195,7 +201,7 @@ def extract_items_from_search(response):
     return results
 
 
-# ============================================================================
+# ===========================================================================
 # API レスポンス キャッシング
 # ============================================================================
 def cached_api_call(cache_key, loader, timeout=3600):
@@ -372,8 +378,9 @@ def build_search_results(youtube, raw_items, threshold, min_dur, max_dur, is_liv
             else:
                 raw_buzz_rate = 0
 
-            alpha = 0.002
-            decay_factor = 1.0 / (1.0 + alpha * days_old)
+            alpha = 0.006
+            C = 0.15
+            decay_factor = C + (1.0 - C) / ((1.0 + alpha * days_old) ** 2)  
             buzz_rate = round(raw_buzz_rate * decay_factor, 2)
 
             # アーカイブかどうかの判定
@@ -424,9 +431,7 @@ def get_error_message(exception: HttpError) -> str:
 # おすすめ動画生成アルゴリズム
 # ============================================================================
 def get_recommendation_queries(watch_history, search_history):
-    """履歴を解析して検索クエリのリストを生成する"""
-
-        # 1. 視聴履歴のタイトルから重要単語を抽出 (TF-IDF)
+    # 視聴履歴のタイトルから重要単語を抽出 (TF-IDF)
     titles = [h.title for h in watch_history[:10]]
     tfidf_words = []
     if titles:
@@ -448,14 +453,14 @@ def get_recommendation_queries(watch_history, search_history):
             except ValueError:
                 tfidf_words = []
 
-    # 2. 視聴履歴から頻出タグを抽出
+    # 視聴履歴から頻出タグを抽出
     all_tags = []
     for h in watch_history[:10]:
         if h.tags:
             all_tags.extend(h.tags)
     common_tags = [tag for tag, count in Counter(all_tags).most_common(10)]
 
-    # 3. 直近の検索クエリを抽出
+    # 直近の検索クエリを抽出
     search_queries = [h.query for h in search_history[:5]]
 
     # クエリ生成
@@ -492,8 +497,8 @@ def recommendations_view(request):
                 new_count = fav_list.videos.count()
                 
                 from django.http import HttpResponse
-                # 1. 削除対象の要素を消すための空文字
-                # 2. hx-swap-oob="true" を付けた要素を返すことで、別の場所（本数表示）を同時に書き換える
+                # 削除対象の要素を消すための空文字
+                # hx-swap-oob="true" を付けた要素を返すことで、別の場所（本数表示）を同時に書き換える
                 response_html = f'''
                     <span id="video-count-{list_id}" hx-swap-oob="true" style="font-size: 0.8em; color: #777; margin-right: 10px;">{new_count} 本</span>
                 '''
@@ -599,6 +604,8 @@ def recommendations_view(request):
         'favorite_lists': favorite_lists, # お気に入りリスト
     }
     return render(request, 'youtube_app/recommendations.html', context)
+
+
 # ============================================================================
 # ヘルパー関数（URL パラメータ処理）
 # ============================================================================
@@ -606,6 +613,8 @@ def build_query_string_without_select(request):
     params = request.GET.copy()
     params.pop('select', None)
     return params.urlencode()
+
+
 # ============================================================================
 # メインビュー：検索フォーム表示・検索実行・結果表示
 # ============================================================================
@@ -980,10 +989,10 @@ def select_video(request):
     return render(request, 'youtube_app/player_fragment.html', context)
 
 
-# --- ヘルパー関数: ユーザーの5つのリストを確保する ---
+# --- ヘルパー関数: ユーザーの6つのリストを確保する ---
 def get_user_favorite_lists(user):
     lists = FavoriteList.objects.filter(user=user)
-    if lists.count() < 5:
+    if lists.count() < 6:
         for i in range(1, 7):
             FavoriteList.objects.get_or_create(
                 user=user, order=i, 

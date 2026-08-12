@@ -198,7 +198,7 @@
                                             <td class="thumbnail-cell">
                                                 <div style="position: relative; display: inline-block;">
                                                     <img src="{{ row.thumbnail_url }}" alt="サムネイル" style="display: block;">
-                                                    {% if row.duration_formatted %}
+                                                    {% if row.duration_formatted and row.target != 'live' %}
                                                         <span style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.8); color: white; padding: 2px 4px; border-radius: 4px; font-size: 0.75em;">
                                                             {{ row.duration_formatted|parse_duration }}
                                                         </span>

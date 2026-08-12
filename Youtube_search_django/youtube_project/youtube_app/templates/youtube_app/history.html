@@ -41,7 +41,7 @@
                                 {% for history in search_history %}
                                     <li style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
                                         <div style="font-weight: bold; font-size: 1.1em;">{{ history.query }}</div>
-                                        <div style="color: #666; font-size: 0.9em; line-height: 1.6;">
+                                        <div style="color: #94a3b8; font-size: 0.9em; line-height: 1.6;">
                                             <!-- 検索対象の日本語変換 -->
                                             対象: 
                                             {% if history.target == 'video' %}通常動画
@@ -103,7 +103,7 @@
                                         </div>
                                         <div style="flex-grow: 1;">
                                             <h3 style="margin: 0 0 5px 0; font-size: 1em; line-height: 1.4;">{{ item.title }}</h3>
-                                            <div style="color: #666; font-size: 0.85em; margin-bottom: 5px;">
+                                            <div style="color: #94a3b8; font-size: 0.85em; margin-bottom: 5px;">
                                                 {{ item.channel_title }} |
                                                 <!-- 動画再生履歴側は archive も all_video も '視聴' 回数になるため既存のままでOK -->
                                                 {% if item.video_type == 'live' %}同接{% else %}視聴{% endif %}: {{ item.view_count|intcomma }} |

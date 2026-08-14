@@ -531,12 +531,12 @@ def recommendations_view(request):
         return HttpResponse("Invalid", status=400)
     
     # --- お気に入りリストの取得 ---
-    favorite_lists = FavoriteList.objects.filter(user=request.user).order_by('index')
+    favorite_lists = FavoriteList.objects.filter(user=request.user).prefetch_related('videos').order_by('index')
     # まだリストがない場合は作成（初回アクセス時用）
     if not favorite_lists.exists():
         for i in range(1, 7):
             FavoriteList.objects.create(user=request.user, index=i, name=f'リスト {i}')
-        favorite_lists = FavoriteList.objects.filter(user=request.user).order_by('index')
+        favorite_lists = FavoriteList.objects.filter(user=request.user).prefetch_related('videos').order_by('index')
     
     # --- おすすめ動画の取得 (既存のロジック) ---
     cache_key_raw = f'user_recommendations_data_user_{request.user.id}' # キャッシュキーをユーザーごとに分ける
@@ -869,11 +869,11 @@ def history_view(request):
     watch_list = WatchHistory.objects.filter(user=request.user)
 
     # ログインユーザーのお気に入りリストの取得（無ければ初期化作成）
-    favorite_lists = FavoriteList.objects.filter(user=request.user).order_by('index')
+    favorite_lists = FavoriteList.objects.filter(user=request.user).prefetch_related('videos').order_by('index')
     if not favorite_lists.exists():
         for i in range(1, 7):
             FavoriteList.objects.get_or_create(user=request.user, index=i, defaults={'name': f'リスト {i}'})
-        favorite_lists = FavoriteList.objects.filter(user=request.user).order_by('index')
+        favorite_lists = FavoriteList.objects.filter(user=request.user).prefetch_related('videos').order_by('index')
 
     # ページネーション設定
     search_page_num = request.GET.get('s_page', 1)
@@ -991,11 +991,11 @@ def select_video(request):
 
 # --- ヘルパー関数: ユーザーの6つのリストを確保する ---
 def get_user_favorite_lists(user):
-    lists = FavoriteList.objects.filter(user=user)
+    lists = FavoriteList.objects.filter(user=user).prefetch_related('videos')
     if lists.count() < 6:
         for i in range(1, 7):
             FavoriteList.objects.get_or_create(
-                user=user, order=i, 
+                user=user, index=i, 
                 defaults={'name': f'リスト {i}'}
             )
         lists = FavoriteList.objects.filter(user=user)

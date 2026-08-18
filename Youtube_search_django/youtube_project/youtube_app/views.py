@@ -647,15 +647,25 @@ def search_view(request):
                 }
             )
             
-            # ここなら必ず created が定義されている
+            # HTMXリクエストの場合、個別にメッセージを返す
+            if request.headers.get('HX-Request'):
+                if created:
+                    return HttpResponse(f'<span style="color: #4ade80; font-size: 0.8em;">「{fav_list.name}」に保存しました</span>')
+                else:
+                    return HttpResponse('<span style="color: #fbbf24; font-size: 0.8em;">既に保存されています</span>')
+
             if created:
                 messages.success(request, f"「{fav_list.name}」に保存しました。")
             else:
                 messages.info(request, "既に保存されています。")
 
         except FavoriteList.DoesNotExist:
+            if request.headers.get('HX-Request'):
+                return HttpResponse('<span style="color: #ff6b6b; font-size: 0.8em;">リストが見つかりません</span>')
             messages.error(request, "選択されたリストが見つかりません。")
         except Exception as e:
+            if request.headers.get('HX-Request'):
+                return HttpResponse('<span style="color: #ff6b6b; font-size: 0.8em;">エラーが発生しました</span>')
             messages.error(request, f"エラーが発生しました: {str(e)}")
         
         return redirect(request.get_full_path())

@@ -210,38 +210,50 @@
                                             <td>{{ row.subscriber_count|intcomma }}</td>
                                             <td>{{ row.buzz_rate }}{% if row.target == 'live' %}‰{% else %}%{% endif %}</td>
                                             <td>{{ row.display_time }}</td>
-                                            <td class="actions-cell">
-                                                {% if row.embeddable %}
-                                                    <a href="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}&target={{ target }}"
-                                                       hx-get="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}&target={{ target }}"
-                                                       hx-target="#embedded-player"
-                                                       hx-swap="innerHTML"
-                                                       class="select-button">選択</a>
-                                                {% else %}
-                                                    <span class="not-embeddable">埋め込み不可</span>
-                                                    <a href="https://www.youtube.com/watch?v={{ row.video_id }}" target="_blank" rel="noopener" class="open-button">YouTubeで開く</a>
-                                                {% endif %}
-                                                <!-- お気に入り追加フォーム -->
-                                                {% if user.is_authenticated %}
-                                                <div class="favorite-dropdown" style="position: relative; display: inline-block;">
-                                                    <button type="button" class="select-button" style="font-size: 0.75em; padding: 4px 8px; background: #333; white-space: nowrap; width: auto;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-                                                        ⭐ お気に入り保存
-                                                    </button>
-                                                    <div class="list-menu" style="display: none; position: absolute; right: 0; top: 100%; background: #222; border: 1px solid #444; border-radius: 4px; z-index: 100; min-width: 120px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
-                                                        {% for flist in favorite_lists %}
-                                                        <form method="post" action="{% url 'youtube_app:search' %}" style="margin: 0;">
-                                                            {% csrf_token %}
-                                                            <input type="hidden" name="video_id" value="{{ row.video_id }}">
-                                                            <input type="hidden" name="list_id" value="{{ flist.id }}">
-                                                            <input type="hidden" name="add_favorite" value="1">
-                                                            <button type="submit" style="width: 100%; text-align: left; background: none; border: none; color: #eee; padding: 8px 12px; font-size: 0.8em; cursor: pointer; border-bottom: 1px solid #333;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='none'">
-                                                                {{ flist.name }}
-                                                            </button>
-                                                        </form>
-                                                        {% endfor %}
+                                                                                        <td class="actions-cell">
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    {% if row.embeddable %}
+                                                        <a href="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}&target={{ target }}"
+                                                           hx-get="{% url 'youtube_app:select_video' %}?video_id={{ row.video_id }}&target={{ target }}"
+                                                           hx-target="#embedded-player"
+                                                           hx-swap="innerHTML"
+                                                           class="select-button">選択</a>
+                                                    {% else %}
+                                                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                            <span class="not-embeddable">埋め込み不可</span>
+                                                            <a href="https://www.youtube.com/watch?v={{ row.video_id }}" target="_blank" rel="noopener" class="open-button" style="font-size: 0.8em; padding: 4px 8px;">YouTubeで開く</a>
+                                                        </div>
+                                                    {% endif %}
+
+                                                    <!-- お気に入り追加フォーム -->
+                                                    {% if user.is_authenticated %}
+                                                    <div class="favorite-dropdown" style="position: relative; display: inline-block;">
+                                                        <button type="button" class="select-button" style="font-size: 0.75em; padding: 4px 8px; background: #333; white-space: nowrap; width: auto;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+                                                            ⭐ お気に入り保存
+                                                        </button>
+                                                        <div class="list-menu" style="display: none; position: absolute; right: 0; top: 100%; background: #222; border: 1px solid #444; border-radius: 4px; z-index: 100; min-width: 120px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                                                            {% for flist in favorite_lists %}
+                                                            <form hx-post="{% url 'youtube_app:search' %}" 
+                                                                  hx-target="#fav-message-{{ row.video_id }}" 
+                                                                  hx-swap="innerHTML"
+                                                                  style="margin: 0;">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="video_id" value="{{ row.video_id }}">
+                                                                <input type="hidden" name="list_id" value="{{ flist.id }}">
+                                                                <input type="hidden" name="add_favorite" value="1">
+                                                                <button type="submit" 
+                                                                        onclick="this.closest('.list-menu').style.display='none';"
+                                                                        style="width: 100%; text-align: left; background: none; border: none; color: #eee; padding: 8px 12px; font-size: 0.8em; cursor: pointer; border-bottom: 1px solid #333;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='none'">
+                                                                    {{ flist.name }}
+                                                                </button>
+                                                            </form>
+                                                            {% endfor %}
+                                                        </div>
                                                     </div>
+                                                    {% endif %}
                                                 </div>
-                                                {% endif %}
+                                                <!-- メッセージ表示用の場所をボタンの下に -->
+                                                <div id="fav-message-{{ row.video_id }}" style="margin-top: 4px; min-height: 1.2em;"></div>
                                             </td>
                                         </tr>
                                     {% endfor %}
